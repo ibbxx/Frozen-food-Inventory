@@ -167,16 +167,16 @@ export function StockTransactionsPage() {
         badge={
           <Badge className="w-fit gap-2" variant="info">
             <Zap className="h-3.5 w-3.5" />
-            Internal Tool
+            Pencatatan Cepat
           </Badge>
         }
-        description="Input stok masuk atau keluar dari satu form cepat. Semua perubahan stok diproses lewat RPC atomik di Supabase untuk mencegah race condition."
+        description="Formulir cepat untuk mencatat perubahan barang masuk dan barang keluar secara langsung. Perubahan jumlah stok akan langsung diperbarui dengan aman."
         title="Transaksi Stok Cepat"
         aside={
           <div className="rounded-2xl border border-cyan-100 bg-white/90 px-4 py-3 text-sm text-slate-600 shadow-sm">
             <div className="flex items-center gap-2 font-medium text-slate-900">
               <Keyboard className="h-4 w-4 text-cyan-600" />
-              Hotkey gudang
+              Pintasan Keyboard
             </div>
             <div className="mt-1">Tekan <strong>/</strong> untuk kembali fokus ke pencarian produk.</div>
           </div>

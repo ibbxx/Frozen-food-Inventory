@@ -111,7 +111,7 @@ export function ReportFilterCard({
             variant="outline"
           >
             <FileText className="mr-2 h-4 w-4" />
-            Export PDF
+            Unduh PDF
           </Button>
           <Button
             disabled={!report || isInvalidRange}
@@ -120,7 +120,7 @@ export function ReportFilterCard({
             variant="outline"
           >
             <FileSpreadsheet className="mr-2 h-4 w-4" />
-            Export Excel
+            Unduh Excel
           </Button>
         </div>
       </CardContent>

@@ -35,7 +35,7 @@ export function StockAuditTableCard({
       <CardHeader>
         <CardTitle>Audit Histori Stok</CardTitle>
         <CardDescription>
-          Staff melihat histori 30 hari terakhir sesuai RLS. Admin dapat melihat penuh dan mengekspor.
+          Staf dapat melihat riwayat 30 hari terakhir. Pengelola (Admin) dapat melihat seluruh riwayat dan mengunduh data.
         </CardDescription>
       </CardHeader>
       <CardContent>

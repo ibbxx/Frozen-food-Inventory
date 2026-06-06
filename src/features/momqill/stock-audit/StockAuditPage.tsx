@@ -81,10 +81,10 @@ export function StockAuditPage() {
         badge={
           <Badge className="w-fit gap-2" variant="warning">
             <ShieldCheck className="h-3.5 w-3.5" />
-            Audit Trail
+            Riwayat Perubahan
           </Badge>
         }
-        description="Pantau siapa yang mengubah stok, kapan perubahan terjadi, dan berapa selisihnya. RLS membatasi staff hanya ke 30 hari terakhir."
+        description="Pantau siapa yang mengubah stok, kapan perubahan terjadi, dan berapa selisihnya. Staf hanya dapat melihat riwayat perubahan dalam 30 hari terakhir demi kelancaran operasional."
         title="Audit Stok"
         actions={
           profile?.role === "admin" ? (

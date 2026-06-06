@@ -63,7 +63,7 @@ export function MomqillDashboardPage() {
   if (dashboardQuery.isError) {
     return (
       <PageErrorState
-        description="Data Supabase belum bisa diambil. Periksa koneksi lalu muat ulang halaman."
+        description="Gagal menghubungkan ke server data. Silakan periksa koneksi internet Anda lalu muat ulang halaman."
         title="Dashboard gagal dimuat"
       />
     );
@@ -74,7 +74,7 @@ export function MomqillDashboardPage() {
       <PageHero
         aside={(
           <div className="rounded-2xl border border-cyan-100 bg-white/80 px-4 py-3 text-sm text-slate-600 shadow-sm">
-            Role aktif: <span className="font-semibold text-slate-900">{profile?.role || "staff"}</span>
+            Peran aktif: <span className="font-semibold text-slate-900">{profile?.role || "staff"}</span>
           </div>
         )}
         badge={(
@@ -82,7 +82,7 @@ export function MomqillDashboardPage() {
             className="rounded-full bg-teal-100 px-3 py-1 text-teal-700 hover:bg-teal-100"
             variant="outline"
           >
-            Dashboard Eksekutif
+            Ringkasan Bisnis
           </Badge>
         )}
         description="Pantau stok harian, arus barang masuk dan keluar, serta produk yang perlu segera diisi ulang."
@@ -91,7 +91,7 @@ export function MomqillDashboardPage() {
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          description="Jumlah SKU aktif yang sedang dipantau."
+          description="Jumlah varian produk aktif yang sedang dipantau."
           icon={<Package2 className="h-5 w-5 text-cyan-600" />}
           title="Total Produk"
           toneClassName="bg-white"
@@ -114,7 +114,7 @@ export function MomqillDashboardPage() {
         <MetricCard
           description="Produk yang menyentuh atau melewati batas minimum."
           icon={<AlertTriangle className="h-5 w-5 text-amber-600" />}
-          title="Alert Stok Menipis"
+          title="Stok Menipis"
           toneClassName="bg-amber-50"
           value={summary?.lowStockCount ?? 0}
         />
@@ -125,7 +125,7 @@ export function MomqillDashboardPage() {
           <CardHeader>
             <CardTitle>Pergerakan Stok 7 Hari Terakhir</CardTitle>
             <CardDescription>
-              Line chart untuk memantau ritme barang masuk dan keluar per hari.
+              Grafik garis untuk memantau pergerakan barang masuk dan keluar setiap hari.
             </CardDescription>
           </CardHeader>
           <CardContent className="h-[320px]">
@@ -158,7 +158,7 @@ export function MomqillDashboardPage() {
           <CardHeader>
             <CardTitle>Perbandingan Bulanan</CardTitle>
             <CardDescription>
-              Bar chart untuk melihat volume masuk dan keluar per bulan.
+              Grafik batang untuk melihat perbandingan volume masuk dan keluar setiap bulan.
             </CardDescription>
           </CardHeader>
           <CardContent className="h-[320px]">
