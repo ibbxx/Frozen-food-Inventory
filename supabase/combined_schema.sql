@@ -1,9 +1,10 @@
 -- ============================================================================
--- MOMQILL INVENTORY DATABASE SCHEMA (CONSOLIDATED)
+-- MOMQILL INVENTORY DATABASE SCHEMA (CONSOLIDATED & CLEANED)
 -- ============================================================================
 -- Berkas skema gabungan ini mendefinisikan struktur database lengkap untuk 
 -- proyek Momqill Inventory. Semua tabel, tipe data, view, fungsi, trigger, 
 -- dan kebijakan keamanan (RLS) diinisialisasi dalam bentuk finalnya.
+-- Berkas ini telah dibersihkan dari objek lama yang tidak lagi digunakan.
 -- ============================================================================
 
 -- 1. EXTENSIONS
@@ -68,22 +69,7 @@ create table if not exists public.outgoing_items (
   created_at timestamptz not null default timezone('utc', now())
 );
 
--- Tabel Inventory Logs (Dipertahankan untuk kompatibilitas skema TypeScript)
-create table if not exists public.inventory_logs (
-  id uuid primary key default gen_random_uuid(),
-  product_id uuid not null references public.products (id) on delete restrict,
-  source_table text not null check (source_table in ('incoming_items', 'outgoing_items', 'products')),
-  source_id uuid not null,
-  movement_type text not null check (movement_type in ('incoming', 'outgoing', 'adjustment')),
-  quantity_delta integer not null,
-  stock_before integer not null check (stock_before >= 0),
-  stock_after integer not null check (stock_after >= 0),
-  notes text,
-  created_by uuid not null default auth.uid() references public.users (id) on delete restrict,
-  created_at timestamptz not null default timezone('utc', now())
-);
-
--- Tabel Stock Logs (Pencatatan riwayat audit stok yang aktif saat ini)
+-- Tabel Stock Logs (Pencatatan riwayat audit stok yang aktif)
 create table if not exists public.stock_logs (
   id uuid primary key default gen_random_uuid(),
   product_id uuid not null references public.products (id) on delete restrict,
@@ -105,9 +91,6 @@ create index if not exists idx_incoming_items_created_by on public.incoming_item
 create index if not exists idx_outgoing_items_date on public.outgoing_items (date desc);
 create index if not exists idx_outgoing_items_product_id on public.outgoing_items (product_id);
 create index if not exists idx_outgoing_items_created_by on public.outgoing_items (created_by);
-create index if not exists idx_inventory_logs_product_id on public.inventory_logs (product_id);
-create index if not exists idx_inventory_logs_source on public.inventory_logs (source_table, source_id);
-create index if not exists idx_inventory_logs_created_by on public.inventory_logs (created_by);
 create index if not exists idx_stock_logs_product_id on public.stock_logs (product_id);
 create index if not exists idx_stock_logs_created_by on public.stock_logs (created_by);
 create index if not exists idx_stock_logs_created_at on public.stock_logs (created_at desc);
@@ -397,36 +380,6 @@ begin
 end;
 $$;
 
--- Pembungkus SQL untuk record_incoming
-create or replace function public.record_incoming_item(
-  p_date date,
-  p_product_id uuid,
-  p_quantity integer,
-  p_supplier_name text
-)
-returns public.incoming_items
-language sql
-security definer
-set search_path = public
-as $$
-  select public.record_incoming(p_date, p_product_id, p_quantity, p_supplier_name);
-$$;
-
--- Pembungkus SQL untuk record_outgoing
-create or replace function public.record_outgoing_item(
-  p_date date,
-  p_product_id uuid,
-  p_quantity integer,
-  p_description text default null
-)
-returns public.outgoing_items
-language sql
-security definer
-set search_path = public
-as $$
-  select public.record_outgoing(p_date, p_product_id, p_quantity, p_description);
-$$;
-
 -- 7. GRANTS
 grant select on public.profiles to authenticated;
 grant select on public.public_catalog_products to anon, authenticated;
@@ -434,8 +387,6 @@ grant select on public.public_catalog_products to anon, authenticated;
 grant execute on function public.process_stock_transaction(date, text, uuid, integer, text) to authenticated;
 grant execute on function public.record_incoming(date, uuid, integer, text) to authenticated;
 grant execute on function public.record_outgoing(date, uuid, integer, text) to authenticated;
-grant execute on function public.record_incoming_item(date, uuid, integer, text) to authenticated;
-grant execute on function public.record_outgoing_item(date, uuid, integer, text) to authenticated;
 
 -- 8. ROW LEVEL SECURITY & POLICIES
 
@@ -555,38 +506,6 @@ with check (public.current_user_role() = 'admin');
 drop policy if exists "outgoing_delete_admin_only" on public.outgoing_items;
 create policy "outgoing_delete_admin_only"
 on public.outgoing_items
-for delete
-to authenticated
-using (public.current_user_role() = 'admin');
-
--- Tabel Inventory Logs
-alter table public.inventory_logs enable row level security;
-
-drop policy if exists "inventory_logs_select_authenticated" on public.inventory_logs;
-create policy "inventory_logs_select_authenticated"
-on public.inventory_logs
-for select
-to authenticated
-using (true);
-
-drop policy if exists "inventory_logs_insert_admin_only" on public.inventory_logs;
-create policy "inventory_logs_insert_admin_only"
-on public.inventory_logs
-for insert
-to authenticated
-with check (public.current_user_role() = 'admin');
-
-drop policy if exists "inventory_logs_update_admin_only" on public.inventory_logs;
-create policy "inventory_logs_update_admin_only"
-on public.inventory_logs
-for update
-to authenticated
-using (public.current_user_role() = 'admin')
-with check (public.current_user_role() = 'admin');
-
-drop policy if exists "inventory_logs_delete_admin_only" on public.inventory_logs;
-create policy "inventory_logs_delete_admin_only"
-on public.inventory_logs
 for delete
 to authenticated
 using (public.current_user_role() = 'admin');
