@@ -1,35 +1,26 @@
 -- ============================================================================
--- MOMQILL INVENTORY DATABASE SCHEMA (CONSOLIDATED & CLEANED)
+-- MOMQILL INVENTORY DATABASE SCHEMA (CONSOLIDATED - NO ROLE RESTRICTIONS)
 -- ============================================================================
 -- Berkas skema gabungan ini mendefinisikan struktur database lengkap untuk 
 -- proyek Momqill Inventory. Semua tabel, tipe data, view, fungsi, trigger, 
 -- dan kebijakan keamanan (RLS) diinisialisasi dalam bentuk finalnya.
--- Berkas ini telah dibersihkan dari objek lama yang tidak lagi digunakan.
+-- Pada versi ini, pembatasan hak akses berbasis role (admin/staff) dinonaktifkan
+-- sehingga semua pengguna terautentikasi memiliki akses penuh.
 -- ============================================================================
 
 -- 1. EXTENSIONS
 create extension if not exists "pgcrypto";
 
--- 2. ENUM TYPES
-do $$
-begin
-  if not exists (
-    select 1
-    from pg_type
-    where typname = 'user_role'
-  ) then
-    create type public.user_role as enum ('admin', 'staff');
-  end if;
-end $$;
-
--- 3. TABLES
+-- 2. TABLES
 
 -- Tabel Users (Referensi langsung dari auth.users)
+-- Catatan: Kolom 'role' tetap dipertahankan sebagai text dengan default 'admin'
+-- agar kompatibel dengan query select frontend tanpa memicu error.
 create table if not exists public.users (
   id uuid primary key references auth.users (id) on delete cascade,
   email text not null unique,
   full_name text,
-  role public.user_role not null default 'staff',
+  role text not null default 'admin',
   created_at timestamptz not null default timezone('utc', now())
 );
 
@@ -83,7 +74,7 @@ create table if not exists public.stock_logs (
   created_at timestamptz not null default timezone('utc', now())
 );
 
--- 4. INDEXES
+-- 3. INDEXES
 create index if not exists idx_products_name on public.products (product_name);
 create index if not exists idx_incoming_items_date on public.incoming_items (date desc);
 create index if not exists idx_incoming_items_product_id on public.incoming_items (product_id);
@@ -95,7 +86,7 @@ create index if not exists idx_stock_logs_product_id on public.stock_logs (produ
 create index if not exists idx_stock_logs_created_by on public.stock_logs (created_by);
 create index if not exists idx_stock_logs_created_at on public.stock_logs (created_at desc);
 
--- 5. VIEWS
+-- 4. VIEWS
 
 -- View Profiles (Ringkasan profil staf/admin)
 create or replace view public.profiles as
@@ -121,7 +112,7 @@ select
 from public.products
 where is_public = true;
 
--- 6. FUNCTIONS & TRIGGERS
+-- 5. FUNCTIONS & TRIGGERS
 
 -- Fungsi Trigger untuk menyalin user baru dari auth.users
 create or replace function public.handle_new_auth_user()
@@ -139,7 +130,7 @@ begin
   );
 
   insert into public.users (id, email, full_name, role)
-  values (new.id, new.email, v_full_name, 'staff')
+  values (new.id, new.email, v_full_name, 'admin')
   on conflict (id) do update
     set email = excluded.email,
         full_name = coalesce(public.users.full_name, excluded.full_name);
@@ -154,9 +145,9 @@ create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_auth_user();
 
--- Fungsi untuk mendapatkan role user aktif saat ini
+-- Fungsi untuk mendapatkan role user aktif (selalu mengembalikan 'admin')
 create or replace function public.current_user_role()
-returns public.user_role
+returns text
 language sql
 stable
 security definer
@@ -182,7 +173,6 @@ set search_path = public
 as $$
 declare
   v_actor_id uuid := auth.uid();
-  v_role public.user_role;
   v_current_stock integer;
   v_new_stock integer;
   v_incoming public.incoming_items;
@@ -191,12 +181,6 @@ declare
 begin
   if v_actor_id is null then
     raise exception 'not authenticated';
-  end if;
-
-  select public.current_user_role() into v_role;
-
-  if v_role not in ('admin', 'staff') then
-    raise exception 'permission denied';
   end if;
 
   if p_type not in ('incoming', 'outgoing') then
@@ -380,7 +364,7 @@ begin
 end;
 $$;
 
--- 7. GRANTS
+-- 6. GRANTS
 grant select on public.profiles to authenticated;
 grant select on public.public_catalog_products to anon, authenticated;
 
@@ -388,25 +372,27 @@ grant execute on function public.process_stock_transaction(date, text, uuid, int
 grant execute on function public.record_incoming(date, uuid, integer, text) to authenticated;
 grant execute on function public.record_outgoing(date, uuid, integer, text) to authenticated;
 
--- 8. ROW LEVEL SECURITY & POLICIES
+-- 7. ROW LEVEL SECURITY & POLICIES
+-- Seluruh kebijakan RLS dikonfigurasi agar dapat diakses oleh semua 
+-- pengguna yang terautentikasi (authenticated) tanpa pembatasan role.
 
 -- Tabel Users
 alter table public.users enable row level security;
 
 drop policy if exists "users_select_self_or_admin" on public.users;
-create policy "users_select_self_or_admin"
+create policy "users_select_all_authenticated"
 on public.users
 for select
 to authenticated
-using (auth.uid() = id or public.current_user_role() = 'admin');
+using (true);
 
 drop policy if exists "users_update_admin_only" on public.users;
-create policy "users_update_admin_only"
+create policy "users_update_self_or_all"
 on public.users
 for update
 to authenticated
-using (public.current_user_role() = 'admin')
-with check (public.current_user_role() = 'admin');
+using (true)
+with check (true);
 
 -- Tabel Products
 alter table public.products enable row level security;
@@ -419,26 +405,26 @@ to authenticated
 using (true);
 
 drop policy if exists "products_insert_admin_only" on public.products;
-create policy "products_insert_admin_only"
+create policy "products_insert_authenticated"
 on public.products
 for insert
 to authenticated
-with check (public.current_user_role() = 'admin');
+with check (true);
 
 drop policy if exists "products_update_admin_only" on public.products;
-create policy "products_update_admin_only"
+create policy "products_update_authenticated"
 on public.products
 for update
 to authenticated
-using (public.current_user_role() = 'admin')
-with check (public.current_user_role() = 'admin');
+using (true)
+with check (true);
 
 drop policy if exists "products_delete_admin_only" on public.products;
-create policy "products_delete_admin_only"
+create policy "products_delete_authenticated"
 on public.products
 for delete
 to authenticated
-using (public.current_user_role() = 'admin');
+using (true);
 
 -- Tabel Incoming Items
 alter table public.incoming_items enable row level security;
@@ -451,29 +437,26 @@ to authenticated
 using (true);
 
 drop policy if exists "incoming_insert_admin_staff" on public.incoming_items;
-create policy "incoming_insert_admin_staff"
+create policy "incoming_insert_authenticated"
 on public.incoming_items
 for insert
 to authenticated
-with check (
-  public.current_user_role() in ('admin', 'staff')
-  and created_by = auth.uid()
-);
+with check (created_by = auth.uid());
 
 drop policy if exists "incoming_update_admin_only" on public.incoming_items;
-create policy "incoming_update_admin_only"
+create policy "incoming_update_authenticated"
 on public.incoming_items
 for update
 to authenticated
-using (public.current_user_role() = 'admin')
-with check (public.current_user_role() = 'admin');
+using (true)
+with check (true);
 
 drop policy if exists "incoming_delete_admin_only" on public.incoming_items;
-create policy "incoming_delete_admin_only"
+create policy "incoming_delete_authenticated"
 on public.incoming_items
 for delete
 to authenticated
-using (public.current_user_role() = 'admin');
+using (true);
 
 -- Tabel Outgoing Items
 alter table public.outgoing_items enable row level security;
@@ -486,64 +469,55 @@ to authenticated
 using (true);
 
 drop policy if exists "outgoing_insert_admin_staff" on public.outgoing_items;
-create policy "outgoing_insert_admin_staff"
+create policy "outgoing_insert_authenticated"
 on public.outgoing_items
 for insert
 to authenticated
-with check (
-  public.current_user_role() in ('admin', 'staff')
-  and created_by = auth.uid()
-);
+with check (created_by = auth.uid());
 
 drop policy if exists "outgoing_update_admin_only" on public.outgoing_items;
-create policy "outgoing_update_admin_only"
+create policy "outgoing_update_authenticated"
 on public.outgoing_items
 for update
 to authenticated
-using (public.current_user_role() = 'admin')
-with check (public.current_user_role() = 'admin');
+using (true)
+with check (true);
 
 drop policy if exists "outgoing_delete_admin_only" on public.outgoing_items;
-create policy "outgoing_delete_admin_only"
+create policy "outgoing_delete_authenticated"
 on public.outgoing_items
 for delete
 to authenticated
-using (public.current_user_role() = 'admin');
+using (true);
 
 -- Tabel Stock Logs
 alter table public.stock_logs enable row level security;
 
 drop policy if exists "stock_logs_select_role_window" on public.stock_logs;
-create policy "stock_logs_select_role_window"
+create policy "stock_logs_select_authenticated"
 on public.stock_logs
 for select
 to authenticated
-using (
-  public.current_user_role() = 'admin'
-  or (
-    public.current_user_role() = 'staff'
-    and created_at >= timezone('utc', now()) - interval '30 days'
-  )
-);
+using (true);
 
 drop policy if exists "stock_logs_insert_admin_only" on public.stock_logs;
-create policy "stock_logs_insert_admin_only"
+create policy "stock_logs_insert_authenticated"
 on public.stock_logs
 for insert
 to authenticated
-with check (public.current_user_role() = 'admin');
+with check (true);
 
 drop policy if exists "stock_logs_update_admin_only" on public.stock_logs;
-create policy "stock_logs_update_admin_only"
+create policy "stock_logs_update_authenticated"
 on public.stock_logs
 for update
 to authenticated
-using (public.current_user_role() = 'admin')
-with check (public.current_user_role() = 'admin');
+using (true)
+with check (true);
 
 drop policy if exists "stock_logs_delete_admin_only" on public.stock_logs;
-create policy "stock_logs_delete_admin_only"
+create policy "stock_logs_delete_authenticated"
 on public.stock_logs
 for delete
 to authenticated
-using (public.current_user_role() = 'admin');
+using (true);
