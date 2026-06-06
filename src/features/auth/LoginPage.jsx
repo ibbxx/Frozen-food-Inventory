@@ -14,7 +14,7 @@ import { useAuth } from "./AuthProvider";
 
 const loginSchema = z.object({
   email: z.string().email("Masukkan alamat email yang valid."),
-  password: z.string().min(8, "Kata sandi minimal 8 karakter."),
+  password: z.string().min(1, "Kata sandi tidak boleh kosong."),
 });
 
 export function LoginPage() {
