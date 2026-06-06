@@ -1,84 +1,79 @@
-insert into public.product_categories (name, description)
-values
-  ('Ready to fry', 'Fast-moving frozen products for retail and outlet operations.'),
-  ('Dimsum', 'Steamed or fried dimsum products with short FEFO planning windows.'),
-  ('Processed meat', 'Frozen sausages, nuggets, meatballs, and similar products.'),
-  ('Seafood', 'Frozen fish, shrimp, and other seafood items.')
-on conflict (name) do nothing;
-
-insert into public.suppliers (name, phone, email, address, notes)
-values
-  ('PT Laut Beku Sentosa', '+62 411 880100', 'ops@lautbeku.co.id', 'Makassar Industrial Estate', 'Primary seafood supplier'),
-  ('CV Nusantara Frozen Food', '+62 411 880200', 'sales@nusantarafrozen.id', 'Gowa Logistics Hub', 'Processed meat supplier'),
-  ('PT Dapur Siap Saji', '+62 411 880300', 'hello@dapursiap.co.id', 'Maros Distribution Park', 'Ready meals and dimsum')
-on conflict (name) do nothing;
-
-insert into public.storage_locations (code, name, type, capacity_notes)
-values
-  ('FRZ-A01', 'Freezer A-01', 'freezer', 'High turnover retail stock'),
-  ('FRZ-B02', 'Freezer B-02', 'freezer', 'Dimsum and mixed seafood'),
-  ('COLD-QC', 'Quality Hold', 'quality_hold', 'Damaged or inspection stock')
-on conflict (code) do nothing;
-
 insert into public.products (
-  sku,
-  name,
-  category_id,
-  brand,
-  unit,
-  pack_size,
-  min_stock,
-  storage_temp_min,
-  storage_temp_max,
-  is_active
+  product_name,
+  category,
+  public_price,
+  image_url,
+  is_public,
+  current_stock,
+  min_stock
 )
-values
-  (
-    'FF-NUG-500',
-    'Chicken Nugget 500g',
-    (select id from public.product_categories where name = 'Ready to fry'),
-    'Frozen Flow',
-    'pack',
-    '12 x 500g',
-    30,
-    -18,
-    -12,
-    true
-  ),
-  (
-    'FF-DMS-001',
-    'Premium Dimsum Shrimp',
-    (select id from public.product_categories where name = 'Dimsum'),
-    'Frozen Flow',
-    'box',
-    '20 trays x 250g',
-    20,
-    -18,
-    -12,
-    true
-  ),
-  (
-    'FF-BFT-1KG',
-    'Beef Meatball 1kg',
-    (select id from public.product_categories where name = 'Processed meat'),
-    'Cold Kitchen',
-    'pack',
-    '10 x 1kg',
-    25,
-    -18,
-    -12,
-    true
-  ),
-  (
-    'FF-FLF-700',
-    'Breaded Fish Fillet 700g',
-    (select id from public.product_categories where name = 'Seafood'),
-    'Blue Harbor',
-    'pack',
-    '16 x 700g',
-    18,
-    -20,
-    -14,
-    true
-  )
-on conflict (sku) do nothing;
+select *
+from (
+  values
+    ('Nugget Ayam Original 500gr', 'Daging', 45000, null, true, 48, 15),
+    ('Sosis Sapi Premium 1kg', 'Daging', 52000, null, true, 22, 10),
+    ('Kentang Goreng Crinkle 1kg', 'Paket Hemat', 39000, null, true, 35, 12),
+    ('Dimsum Ayam Udang 250gr', 'Suki', 47000, null, true, 18, 8),
+    ('Tempura Kepiting 500gr', 'Suki', 43000, null, true, 0, 6)
+) as seed(product_name, category, public_price, image_url, is_public, current_stock, min_stock)
+where not exists (
+  select 1
+  from public.products
+  where products.product_name = seed.product_name
+);
+
+insert into public.incoming_items (
+  date,
+  product_id,
+  quantity,
+  supplier_name,
+  created_by
+)
+select
+  seed.date,
+  products.id,
+  seed.quantity,
+  seed.supplier_name,
+  null
+from (
+  values
+    ('2026-04-17'::date, 'Nugget Ayam Original 500gr', 12, 'PT Beku Jaya'),
+    ('2026-04-17'::date, 'Kentang Goreng Crinkle 1kg', 10, 'CV Mitra Frozen'),
+    ('2026-04-10'::date, 'Dimsum Ayam Udang 250gr', 8, 'PT Laut Dingin')
+) as seed(date, product_name, quantity, supplier_name)
+join public.products on products.product_name = seed.product_name
+where not exists (
+  select 1
+  from public.incoming_items
+  where incoming_items.date = seed.date
+    and incoming_items.product_id = products.id
+    and incoming_items.quantity = seed.quantity
+);
+
+insert into public.outgoing_items (
+  date,
+  product_id,
+  quantity,
+  description,
+  created_by
+)
+select
+  seed.date,
+  products.id,
+  seed.quantity,
+  seed.description,
+  null
+from (
+  values
+    ('2026-04-18'::date, 'Nugget Ayam Original 500gr', 6, 'Penjualan marketplace'),
+    ('2026-04-18'::date, 'Sosis Sapi Premium 1kg', 4, 'Penjualan toko'),
+    ('2026-04-19'::date, 'Tempura Kepiting 500gr', 2, 'Pesanan reseller')
+) as seed(date, product_name, quantity, description)
+join public.products on products.product_name = seed.product_name
+where not exists (
+  select 1
+  from public.outgoing_items
+  where outgoing_items.date = seed.date
+    and outgoing_items.product_id = products.id
+    and outgoing_items.quantity = seed.quantity
+);

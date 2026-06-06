@@ -1,4 +1,4 @@
-import { SectionCard } from "../../components/ui/SectionCard";
+import { SectionCard } from "@/shared/ui/SectionCard";
 
 const roles = [
   {

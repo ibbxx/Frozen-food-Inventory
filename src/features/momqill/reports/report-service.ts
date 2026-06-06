@@ -1,9 +1,9 @@
 import {
-  fallbackIncomingItems,
-  fallbackOutgoingItems,
-  fallbackProducts,
-} from "../mock/mock-data";
-import { momqillSupabase } from "../lib/supabase";
+  listIncomingItems,
+  listOutgoingItems,
+  listProducts,
+} from "../shared/repository";
+
 import type {
   IncomingItem,
   InventoryReportFilters,
@@ -77,69 +77,36 @@ function buildReportPayload(
   };
 }
 
-async function fetchProducts(): Promise<Product[]> {
-  if (!momqillSupabase) {
-    return fallbackProducts;
-  }
-
-  const { data, error } = await momqillSupabase
-    .from("products")
-    .select("id, product_name, current_stock, min_stock, created_at")
-    .order("product_name", { ascending: true });
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
-}
-
 async function fetchIncomingItems(startDate: string): Promise<IncomingItem[]> {
-  if (!momqillSupabase) {
-    return fallbackIncomingItems.filter((item) => item.date >= startDate);
-  }
-
-  const { data, error } = await momqillSupabase
-    .from("incoming_items")
-    .select("id, date, product_id, quantity, supplier_name, created_at")
-    .gte("date", startDate)
-    .lte("date", formatDateValue(new Date()))
-    .order("date", { ascending: false });
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
+  return listIncomingItems({
+    endDate: formatDateValue(new Date()),
+    startDate,
+  });
 }
 
 async function fetchOutgoingItems(startDate: string): Promise<OutgoingItem[]> {
-  if (!momqillSupabase) {
-    return fallbackOutgoingItems.filter((item) => item.date >= startDate);
-  }
-
-  const { data, error } = await momqillSupabase
-    .from("outgoing_items")
-    .select("id, date, product_id, quantity, description, created_at")
-    .gte("date", startDate)
-    .lte("date", formatDateValue(new Date()))
-    .order("date", { ascending: false });
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
+  return listOutgoingItems({
+    endDate: formatDateValue(new Date()),
+    startDate,
+  });
 }
 
 export async function fetchInventoryReport(
   filters: InventoryReportFilters,
 ): Promise<InventoryReportPayload> {
-  const [products, incomingItems, outgoingItems] = await Promise.all([
-    fetchProducts(),
-    fetchIncomingItems(filters.startDate),
-    fetchOutgoingItems(filters.startDate),
-  ]);
+  try {
+    const [products, incomingItems, outgoingItems] = await Promise.all([
+      listProducts(),
+      fetchIncomingItems(filters.startDate),
+      fetchOutgoingItems(filters.startDate),
+    ]);
 
-  return buildReportPayload(products, incomingItems, outgoingItems, filters);
+    return buildReportPayload(products, incomingItems, outgoingItems, filters);
+  } catch (error) {
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Gagal membangun laporan inventaris dari database.",
+    );
+  }
 }

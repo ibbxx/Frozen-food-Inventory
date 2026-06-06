@@ -1,4 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
+
+import { momqillQueryKeys } from "../shared/query-keys";
+
 import {
   fetchOutgoingHistory,
   fetchProductsForOutgoing,
@@ -6,12 +9,12 @@ import {
 
 export function useOutgoingPageData() {
   const productsQuery = useQuery({
-    queryKey: ["momqill", "outgoing", "products"],
+    queryKey: momqillQueryKeys.outgoingProducts(),
     queryFn: fetchProductsForOutgoing,
   });
 
   const historyQuery = useQuery({
-    queryKey: ["momqill", "outgoing", "history"],
+    queryKey: momqillQueryKeys.outgoingHistory(8),
     queryFn: () => fetchOutgoingHistory(8),
   });
 

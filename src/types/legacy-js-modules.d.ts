@@ -1,18 +1,18 @@
-declare module "@/components/ui/badge" {
+declare module "@/shared/ui/badge" {
   import type { ComponentType } from "react";
 
   export const Badge: ComponentType<any>;
   export const badgeVariants: (...args: any[]) => string;
 }
 
-declare module "@/components/ui/button" {
+declare module "@/shared/ui/button" {
   import type { ComponentType } from "react";
 
   export const Button: ComponentType<any>;
   export const buttonVariants: (...args: any[]) => string;
 }
 
-declare module "@/components/ui/card" {
+declare module "@/shared/ui/card" {
   import type { ComponentType } from "react";
 
   export const Card: ComponentType<any>;
@@ -23,18 +23,24 @@ declare module "@/components/ui/card" {
   export const CardFooter: ComponentType<any>;
 }
 
-declare module "@/components/ui/input" {
+declare module "@/shared/ui/input" {
   import type { ComponentType } from "react";
 
   export const Input: ComponentType<any>;
 }
 
-declare module "@/components/ui/modal" {
+declare module "@/shared/ui/modal" {
   import type { ComponentType } from "react";
 
   export const Modal: ComponentType<any>;
 }
 
 declare module "@/features/auth/AuthProvider" {
+  export function useAuth(): any;
+}
+
+declare module "@/features/auth" {
+  export function AuthProvider(props: any): any;
+  export function ProtectedRoute(props: any): any;
   export function useAuth(): any;
 }

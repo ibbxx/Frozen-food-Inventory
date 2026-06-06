@@ -1,0 +1,389 @@
+alter table public.users
+  add column if not exists full_name text;
+
+update public.users
+set full_name = coalesce(full_name, split_part(email, '@', 1))
+where full_name is null;
+
+create or replace function public.handle_new_auth_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_full_name text;
+begin
+  v_full_name := coalesce(
+    new.raw_user_meta_data ->> 'full_name',
+    split_part(new.email, '@', 1)
+  );
+
+  insert into public.users (id, email, full_name, role)
+  values (new.id, new.email, v_full_name, 'staff')
+  on conflict (id) do update
+    set email = excluded.email,
+        full_name = coalesce(public.users.full_name, excluded.full_name);
+
+  return new;
+end;
+$$;
+
+alter table public.products
+  add column if not exists category text not null default 'Daging';
+
+alter table public.products
+  add column if not exists public_price numeric(12, 2);
+
+alter table public.products
+  add column if not exists image_url text;
+
+alter table public.products
+  add column if not exists is_public boolean not null default true;
+
+update public.products
+set category = case
+  when product_name ilike '%dimsum%' or product_name ilike '%suki%' then 'Suki'
+  when product_name ilike '%paket%' then 'Paket Hemat'
+  else 'Daging'
+end
+where category is null or category not in ('Daging', 'Suki', 'Paket Hemat');
+
+update public.products
+set public_price = case
+  when product_name ilike '%nugget%' then 45000
+  when product_name ilike '%sosis%' then 52000
+  when product_name ilike '%kentang%' then 39000
+  when product_name ilike '%dimsum%' then 47000
+  when product_name ilike '%tempura%' then 43000
+  else coalesce(public_price, 35000)
+end
+where public_price is null;
+
+alter table public.products
+  add constraint products_category_check
+  check (category in ('Daging', 'Suki', 'Paket Hemat'));
+
+create table if not exists public.stock_logs (
+  id uuid primary key default gen_random_uuid(),
+  product_id uuid not null references public.products (id) on delete restrict,
+  source_transaction_id uuid,
+  old_stock integer not null check (old_stock >= 0),
+  change_amount integer not null,
+  new_stock integer not null check (new_stock >= 0),
+  type text not null check (type in ('incoming', 'outgoing')),
+  notes text,
+  created_by uuid not null default auth.uid() references public.users (id) on delete restrict,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists idx_stock_logs_product_id on public.stock_logs (product_id);
+create index if not exists idx_stock_logs_created_by on public.stock_logs (created_by);
+create index if not exists idx_stock_logs_created_at on public.stock_logs (created_at desc);
+
+insert into public.stock_logs (
+  product_id,
+  source_transaction_id,
+  old_stock,
+  change_amount,
+  new_stock,
+  type,
+  notes,
+  created_by,
+  created_at
+)
+select
+  inventory_logs.product_id,
+  inventory_logs.source_id,
+  inventory_logs.stock_before,
+  inventory_logs.quantity_delta,
+  inventory_logs.stock_after,
+  inventory_logs.movement_type::text,
+  inventory_logs.notes,
+  inventory_logs.created_by,
+  inventory_logs.created_at
+from public.inventory_logs
+where inventory_logs.movement_type in ('incoming', 'outgoing')
+  and not exists (
+    select 1
+    from public.stock_logs
+    where stock_logs.source_transaction_id = inventory_logs.source_id
+  );
+
+create or replace view public.profiles as
+select
+  id,
+  coalesce(full_name, split_part(email, '@', 1)) as full_name,
+  role
+from public.users;
+
+grant select on public.profiles to authenticated;
+
+create or replace view public.public_catalog_products as
+select
+  id,
+  product_name,
+  category,
+  public_price,
+  image_url,
+  case
+    when current_stock > 10 then 'available'
+    when current_stock between 1 and 10 then 'limited'
+    else 'out'
+  end as stock_status
+from public.products
+where is_public = true;
+
+grant select on public.public_catalog_products to anon, authenticated;
+
+create or replace function public.process_stock_transaction(
+  p_date date,
+  p_notes text,
+  p_product_id uuid,
+  p_quantity integer,
+  p_type text
+)
+returns public.stock_logs
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_actor_id uuid := auth.uid();
+  v_role public.user_role;
+  v_current_stock integer;
+  v_new_stock integer;
+  v_incoming public.incoming_items;
+  v_outgoing public.outgoing_items;
+  v_log public.stock_logs;
+begin
+  if v_actor_id is null then
+    raise exception 'not authenticated';
+  end if;
+
+  select public.current_user_role() into v_role;
+
+  if v_role not in ('admin', 'staff') then
+    raise exception 'permission denied';
+  end if;
+
+  if p_type not in ('incoming', 'outgoing') then
+    raise exception 'invalid transaction type';
+  end if;
+
+  if p_quantity <= 0 then
+    raise exception 'quantity must be greater than zero';
+  end if;
+
+  select current_stock
+  into v_current_stock
+  from public.products
+  where id = p_product_id
+  for update;
+
+  if v_current_stock is null then
+    raise exception 'product not found';
+  end if;
+
+  if p_type = 'outgoing' and p_quantity > v_current_stock then
+    raise exception 'insufficient stock';
+  end if;
+
+  v_new_stock := case
+    when p_type = 'incoming' then v_current_stock + p_quantity
+    else v_current_stock - p_quantity
+  end;
+
+  update public.products
+  set current_stock = v_new_stock
+  where id = p_product_id;
+
+  if p_type = 'incoming' then
+    insert into public.incoming_items (
+      date,
+      product_id,
+      quantity,
+      supplier_name,
+      created_by
+    )
+    values (
+      p_date,
+      p_product_id,
+      p_quantity,
+      coalesce(nullif(trim(p_notes), ''), 'Transaksi stok masuk internal'),
+      v_actor_id
+    )
+    returning * into v_incoming;
+
+    insert into public.stock_logs (
+      product_id,
+      source_transaction_id,
+      old_stock,
+      change_amount,
+      new_stock,
+      type,
+      notes,
+      created_by
+    )
+    values (
+      p_product_id,
+      v_incoming.id,
+      v_current_stock,
+      p_quantity,
+      v_new_stock,
+      'incoming',
+      nullif(trim(p_notes), ''),
+      v_actor_id
+    )
+    returning * into v_log;
+  else
+    insert into public.outgoing_items (
+      date,
+      product_id,
+      quantity,
+      description,
+      created_by
+    )
+    values (
+      p_date,
+      p_product_id,
+      p_quantity,
+      nullif(trim(p_notes), ''),
+      v_actor_id
+    )
+    returning * into v_outgoing;
+
+    insert into public.stock_logs (
+      product_id,
+      source_transaction_id,
+      old_stock,
+      change_amount,
+      new_stock,
+      type,
+      notes,
+      created_by
+    )
+    values (
+      p_product_id,
+      v_outgoing.id,
+      v_current_stock,
+      p_quantity * -1,
+      v_new_stock,
+      'outgoing',
+      nullif(trim(p_notes), ''),
+      v_actor_id
+    )
+    returning * into v_log;
+  end if;
+
+  return v_log;
+end;
+$$;
+
+create or replace function public.record_incoming(
+  p_date date,
+  p_product_id uuid,
+  p_quantity integer,
+  p_supplier_name text
+)
+returns public.incoming_items
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_log public.stock_logs;
+  v_item public.incoming_items;
+begin
+  select public.process_stock_transaction(
+    p_date,
+    p_supplier_name,
+    p_product_id,
+    p_quantity,
+    'incoming'
+  )
+  into v_log;
+
+  select *
+  into v_item
+  from public.incoming_items
+  where id = v_log.source_transaction_id;
+
+  return v_item;
+end;
+$$;
+
+create or replace function public.record_outgoing(
+  p_date date,
+  p_product_id uuid,
+  p_quantity integer,
+  p_description text default null
+)
+returns public.outgoing_items
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_log public.stock_logs;
+  v_item public.outgoing_items;
+begin
+  select public.process_stock_transaction(
+    p_date,
+    p_description,
+    p_product_id,
+    p_quantity,
+    'outgoing'
+  )
+  into v_log;
+
+  select *
+  into v_item
+  from public.outgoing_items
+  where id = v_log.source_transaction_id;
+
+  return v_item;
+end;
+$$;
+
+grant execute on function public.process_stock_transaction(date, text, uuid, integer, text) to authenticated;
+grant execute on function public.record_incoming(date, uuid, integer, text) to authenticated;
+grant execute on function public.record_outgoing(date, uuid, integer, text) to authenticated;
+
+alter table public.stock_logs enable row level security;
+
+drop policy if exists "stock_logs_select_role_window" on public.stock_logs;
+drop policy if exists "stock_logs_insert_admin_only" on public.stock_logs;
+drop policy if exists "stock_logs_update_admin_only" on public.stock_logs;
+drop policy if exists "stock_logs_delete_admin_only" on public.stock_logs;
+
+create policy "stock_logs_select_role_window"
+on public.stock_logs
+for select
+to authenticated
+using (
+  public.current_user_role() = 'admin'
+  or (
+    public.current_user_role() = 'staff'
+    and created_at >= timezone('utc', now()) - interval '30 days'
+  )
+);
+
+create policy "stock_logs_insert_admin_only"
+on public.stock_logs
+for insert
+to authenticated
+with check (public.current_user_role() = 'admin');
+
+create policy "stock_logs_update_admin_only"
+on public.stock_logs
+for update
+to authenticated
+using (public.current_user_role() = 'admin')
+with check (public.current_user_role() = 'admin');
+
+create policy "stock_logs_delete_admin_only"
+on public.stock_logs
+for delete
+to authenticated
+using (public.current_user_role() = 'admin');

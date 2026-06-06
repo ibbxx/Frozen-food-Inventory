@@ -1,13 +1,16 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Snowflake } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Navigate, useLocation } from "react-router-dom";
+import { z } from "zod";
+
+import { Button } from "@/shared/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Input } from "@/shared/ui/input";
+
 import { useAuth } from "./AuthProvider";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
-import { Input } from "../../components/ui/input";
-import { Button } from "../../components/ui/button";
-import { Snowflake } from "lucide-react";
+
 
 const loginSchema = z.object({
   email: z.string().email("Masukkan alamat email yang valid."),

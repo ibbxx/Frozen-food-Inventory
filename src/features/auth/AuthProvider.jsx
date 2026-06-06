@@ -1,8 +1,11 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { appEnv } from "../../lib/env";
-import { supabase } from "../../lib/supabase";
+
+import { appEnv } from "@/shared/lib/env";
+import { supabase } from "@/shared/lib/supabase";
 
 const AuthContext = createContext(null);
+const MISSING_SUPABASE_MESSAGE =
+  "Supabase belum dikonfigurasi. Isi VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY untuk menggunakan Momqill.";
 
 async function fetchProfile(userId) {
   if (!supabase || !userId) {
@@ -11,7 +14,7 @@ async function fetchProfile(userId) {
 
   const { data, error } = await supabase
     .from("users")
-    .select("id, email, role")
+    .select("id, email, full_name, role")
     .eq("id", userId)
     .single();
 
@@ -21,7 +24,7 @@ async function fetchProfile(userId) {
 
   return {
     id: data.id,
-    full_name: data.email?.split("@")[0] || "Pengguna",
+    full_name: data.full_name || data.email?.split("@")[0] || "Pengguna",
     role: data.role,
     is_active: true,
   };
@@ -35,6 +38,7 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (!appEnv.isSupabaseConfigured || !supabase) {
+      setAuthError(MISSING_SUPABASE_MESSAGE);
       setLoading(false);
       return undefined;
     }
@@ -116,18 +120,7 @@ export function AuthProvider({ children }) {
 
   async function signIn({ email, password }) {
     if (!supabase) {
-      const fallbackName = email?.split("@")[0]?.trim() || "Operator";
-      setSession({
-        user: { id: "local-user-123", email },
-        access_token: "local-session-token",
-      });
-      setProfile({
-        id: "local-user-123",
-        full_name: fallbackName,
-        role: "admin",
-        is_active: true,
-      });
-      return;
+      throw new Error(MISSING_SUPABASE_MESSAGE);
     }
 
     const { error } = await supabase.auth.signInWithPassword({

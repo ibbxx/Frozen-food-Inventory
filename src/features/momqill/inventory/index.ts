@@ -1,0 +1,1 @@
+export { MomqillInventoryPage } from "./MomqillInventoryPage";

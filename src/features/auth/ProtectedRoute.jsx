@@ -1,5 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { hasRequiredRole } from "../../lib/permissions";
+
+import { hasRequiredRole } from "@/shared/lib/permissions";
+
 import { useAuth } from "./AuthProvider";
 
 export function ProtectedRoute({ children, requiredRoles = [] }) {

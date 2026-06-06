@@ -1,6 +1,7 @@
-import { useEffect } from "react";
 import { AlertCircle, CheckCircle2, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
+
+import { Button } from "@/shared/ui/button";
 
 type ToastTone = "success" | "error";
 

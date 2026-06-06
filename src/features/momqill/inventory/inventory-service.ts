@@ -1,5 +1,5 @@
-import { fallbackProducts } from "../mock/mock-data";
-import { momqillSupabase } from "../lib/supabase";
+import { listProducts } from "../shared/repository";
+
 import type {
   InventoryMonitoringPayload,
   InventoryMonitoringRow,
@@ -57,24 +57,15 @@ function buildInventoryMonitoringPayload(products: Product[]): InventoryMonitori
   };
 }
 
-async function fetchProducts(): Promise<Product[]> {
-  if (!momqillSupabase) {
-    return fallbackProducts;
-  }
-
-  const { data, error } = await momqillSupabase
-    .from("products")
-    .select("id, product_name, current_stock, min_stock, created_at")
-    .order("product_name", { ascending: true });
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
-}
-
 export async function fetchInventoryMonitoring(): Promise<InventoryMonitoringPayload> {
-  const products = await fetchProducts();
-  return buildInventoryMonitoringPayload(products);
+  try {
+    const products = await listProducts();
+    return buildInventoryMonitoringPayload(products);
+  } catch (error) {
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Gagal membangun monitoring stok dari database.",
+    );
+  }
 }

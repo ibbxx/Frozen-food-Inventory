@@ -1,0 +1,1 @@
+export { PublicCatalogPage } from "./PublicCatalogPage";

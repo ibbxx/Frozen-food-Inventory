@@ -1,8 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
+
+import { AppErrorBoundary } from "./app/errors/AppErrorBoundary";
 import { AppProviders } from "./app/providers";
-import { AppErrorBoundary } from "./components/app/AppErrorBoundary";
 import { router } from "./app/router";
 import "./styles/global.css";
 

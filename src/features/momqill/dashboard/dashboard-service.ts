@@ -1,9 +1,9 @@
 import {
-  fallbackIncomingItems,
-  fallbackOutgoingItems,
-  fallbackProducts,
-} from "../mock/mock-data";
-import { momqillSupabase } from "../lib/supabase";
+  listIncomingItems,
+  listOutgoingItems,
+  listProducts,
+} from "../shared/repository";
+
 import type {
   DashboardMonthlyPoint,
   DashboardPayload,
@@ -131,67 +131,30 @@ function buildDashboardPayload(
   };
 }
 
-async function fetchProducts(): Promise<Product[]> {
-  if (!momqillSupabase) {
-    return fallbackProducts;
-  }
-
-  const { data, error } = await momqillSupabase
-    .from("products")
-    .select("id, product_name, current_stock, min_stock, created_at")
-    .order("product_name", { ascending: true });
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
-}
-
 async function fetchIncomingItems(): Promise<IncomingItem[]> {
-  if (!momqillSupabase) {
-    return fallbackIncomingItems;
-  }
-
   const since = formatDateKey(startOfMonth(new Date(), -5));
-  const { data, error } = await momqillSupabase
-    .from("incoming_items")
-    .select("id, date, product_id, quantity, supplier_name, created_at")
-    .gte("date", since)
-    .order("date", { ascending: false });
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
+  return listIncomingItems({ startDate: since });
 }
 
 async function fetchOutgoingItems(): Promise<OutgoingItem[]> {
-  if (!momqillSupabase) {
-    return fallbackOutgoingItems;
-  }
-
   const since = formatDateKey(startOfMonth(new Date(), -5));
-  const { data, error } = await momqillSupabase
-    .from("outgoing_items")
-    .select("id, date, product_id, quantity, description, created_at")
-    .gte("date", since)
-    .order("date", { ascending: false });
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
+  return listOutgoingItems({ startDate: since });
 }
 
 export async function fetchDashboardPayload(): Promise<DashboardPayload> {
-  const [products, incomingItems, outgoingItems] = await Promise.all([
-    fetchProducts(),
-    fetchIncomingItems(),
-    fetchOutgoingItems(),
-  ]);
+  try {
+    const [products, incomingItems, outgoingItems] = await Promise.all([
+      listProducts(),
+      fetchIncomingItems(),
+      fetchOutgoingItems(),
+    ]);
 
-  return buildDashboardPayload(products, incomingItems, outgoingItems);
+    return buildDashboardPayload(products, incomingItems, outgoingItems);
+  } catch (error) {
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Gagal menyusun ringkasan dashboard dari database.",
+    );
+  }
 }

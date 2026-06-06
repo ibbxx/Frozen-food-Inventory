@@ -1,11 +1,10 @@
-import { useMemo } from "react";
-import type { ReactNode } from "react";
 import {
   AlertTriangle,
   ArrowDownCircle,
   ArrowUpCircle,
   Package2,
 } from "lucide-react";
+import { useMemo } from "react";
 import {
   Bar,
   BarChart,
@@ -17,15 +16,21 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Badge } from "@/components/ui/badge";
+
+import { useAuth } from "@/features/auth";
+import { Badge } from "@/shared/ui/badge";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { useAuth } from "@/features/auth/AuthProvider";
+} from "@/shared/ui/card";
+
+import { MetricCard } from "../shared/MetricCard";
+import { PageErrorState } from "../shared/PageErrorState";
+import { PageHero } from "../shared/PageHero";
+
 import { useDashboardData } from "./use-dashboard-data";
 
 interface AuthProfile {
@@ -35,35 +40,6 @@ interface AuthProfile {
 
 interface AuthShape {
   profile?: AuthProfile | null;
-}
-
-function SummaryCard({
-  title,
-  value,
-  caption,
-  icon,
-  toneClassName,
-}: {
-  title: string;
-  value: number;
-  caption: string;
-  icon: ReactNode;
-  toneClassName: string;
-}) {
-  return (
-    <Card className={`border-white/70 shadow-sm ${toneClassName}`}>
-      <CardHeader className="flex flex-row items-start justify-between pb-3">
-        <div>
-          <CardDescription className="text-slate-600">{title}</CardDescription>
-          <CardTitle className="mt-2 text-3xl font-semibold text-slate-900">{value}</CardTitle>
-        </div>
-        <div className="rounded-2xl bg-white/80 p-3 shadow-sm">{icon}</div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-slate-600">{caption}</p>
-      </CardContent>
-    </Card>
-  );
 }
 
 export function MomqillDashboardPage() {
@@ -86,64 +62,57 @@ export function MomqillDashboardPage() {
 
   if (dashboardQuery.isError) {
     return (
-      <div className="grid gap-6">
-        <Card className="border-red-100 bg-red-50">
-          <CardHeader>
-            <CardTitle>Dashboard gagal dimuat</CardTitle>
-            <CardDescription>
-              Data Supabase belum bisa diambil. Periksa koneksi lalu muat ulang halaman.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
+      <PageErrorState
+        description="Data Supabase belum bisa diambil. Periksa koneksi lalu muat ulang halaman."
+        title="Dashboard gagal dimuat"
+      />
     );
   }
 
   return (
     <div className="grid gap-6">
-      <section className="rounded-[28px] border border-cyan-100 bg-gradient-to-br from-cyan-50 via-white to-teal-50 p-6 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-2">
-            <Badge className="rounded-full bg-teal-100 px-3 py-1 text-teal-700 hover:bg-teal-100" variant="outline">
-              Dashboard Eksekutif
-            </Badge>
-            <h2 className="text-3xl font-semibold tracking-tight text-slate-900">
-              Selamat datang, {greetingName}
-            </h2>
-            <p className="max-w-2xl text-sm leading-6 text-slate-600">
-              Pantau stok harian, arus barang masuk dan keluar, serta produk yang perlu segera diisi ulang.
-            </p>
-          </div>
+      <PageHero
+        aside={(
           <div className="rounded-2xl border border-cyan-100 bg-white/80 px-4 py-3 text-sm text-slate-600 shadow-sm">
             Role aktif: <span className="font-semibold text-slate-900">{profile?.role || "staff"}</span>
           </div>
-        </div>
-      </section>
+        )}
+        badge={(
+          <Badge
+            className="rounded-full bg-teal-100 px-3 py-1 text-teal-700 hover:bg-teal-100"
+            variant="outline"
+          >
+            Dashboard Eksekutif
+          </Badge>
+        )}
+        description="Pantau stok harian, arus barang masuk dan keluar, serta produk yang perlu segera diisi ulang."
+        title={`Selamat datang, ${greetingName}`}
+      />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard
-          caption="Jumlah SKU aktif yang sedang dipantau."
+        <MetricCard
+          description="Jumlah SKU aktif yang sedang dipantau."
           icon={<Package2 className="h-5 w-5 text-cyan-600" />}
           title="Total Produk"
           toneClassName="bg-white"
           value={summary?.totalProducts ?? 0}
         />
-        <SummaryCard
-          caption="Akumulasi barang masuk pada tanggal berjalan."
+        <MetricCard
+          description="Akumulasi barang masuk pada tanggal berjalan."
           icon={<ArrowDownCircle className="h-5 w-5 text-teal-600" />}
           title="Stok Masuk Hari Ini"
           toneClassName="bg-cyan-50/80"
           value={summary?.incomingToday ?? 0}
         />
-        <SummaryCard
-          caption="Barang keluar yang berhasil tercatat hari ini."
+        <MetricCard
+          description="Barang keluar yang berhasil tercatat hari ini."
           icon={<ArrowUpCircle className="h-5 w-5 text-sky-600" />}
           title="Stok Keluar Hari Ini"
           toneClassName="bg-white"
           value={summary?.outgoingToday ?? 0}
         />
-        <SummaryCard
-          caption="Produk yang menyentuh atau melewati batas minimum."
+        <MetricCard
+          description="Produk yang menyentuh atau melewati batas minimum."
           icon={<AlertTriangle className="h-5 w-5 text-amber-600" />}
           title="Alert Stok Menipis"
           toneClassName="bg-amber-50"

@@ -10,6 +10,10 @@ export default defineConfig({
   server: {
     port: 3000,
   },
+  test: {
+    environment: "node",
+    globals: true,
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
