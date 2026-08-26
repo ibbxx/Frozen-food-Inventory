@@ -47,10 +47,17 @@ export function AuthProvider({ children }) {
 
     async function initializeAuth() {
       try {
+        // Wrapper timeout 3 detik untuk getSession
+        // (Mencegah hang akibat localStorage lock Supabase yang korup)
+        const getSessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error("Supabase getSession timeout (kemungkinan lock korup)")), 3000);
+        });
+
         const {
           data: { session: initialSession },
           error,
-        } = await supabase.auth.getSession();
+        } = await Promise.race([getSessionPromise, timeoutPromise]);
 
         if (!isMounted) return;
 
@@ -80,6 +87,25 @@ export function AuthProvider({ children }) {
         }
       } catch (err) {
         if (isMounted) {
+          console.error("Kesalahan fatal saat inisialisasi sesi:", err);
+          
+          // Auto-recovery: Jika terjadi timeout atau error internal (kemungkinan lock korup),
+          // kita hapus seluruh state localStorage yang terkait dengan Supabase Auth
+          try {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key && key.startsWith("sb-")) {
+                keysToRemove.push(key);
+              }
+            }
+            keysToRemove.forEach((key) => localStorage.removeItem(key));
+            localStorage.removeItem("momqill_cached_profile");
+            console.warn("Storage dibersihkan untuk recovery.");
+          } catch (storageErr) {
+            console.error("Gagal membersihkan storage:", storageErr);
+          }
+
           setAuthError(err.message || "Gagal menginisialisasi autentikasi.");
         }
       } finally {
