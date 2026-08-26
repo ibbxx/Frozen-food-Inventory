@@ -7,6 +7,20 @@ import { fetchMomqillProducts } from "./products-service";
 export function useMomqillProducts() {
   return useQuery({
     queryKey: momqillQueryKeys.productList(),
-    queryFn: fetchMomqillProducts,
+    queryFn: async () => {
+      const data = await fetchMomqillProducts();
+      try {
+        localStorage.setItem("momqill_cached_products", JSON.stringify(data));
+      } catch {}
+      return data;
+    },
+    initialData: () => {
+      try {
+        const cached = localStorage.getItem("momqill_cached_products");
+        return cached ? JSON.parse(cached) : undefined;
+      } catch {
+        return undefined;
+      }
+    },
   });
 }

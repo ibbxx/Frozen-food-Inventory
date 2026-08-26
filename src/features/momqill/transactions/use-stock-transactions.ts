@@ -1,16 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 
+import { fetchMomqillProducts } from "../products/products-service";
 import { momqillQueryKeys } from "../shared/query-keys";
-
 import {
-  fetchProductsForStockTransactions,
   fetchRecentStockLogs,
 } from "./transactions-service";
 
 export function useStockTransactionsPageData() {
   const productsQuery = useQuery({
-    queryKey: momqillQueryKeys.stockTransactionProducts(),
-    queryFn: fetchProductsForStockTransactions,
+    queryKey: momqillQueryKeys.productList(),
+    queryFn: fetchMomqillProducts,
   });
 
   const logsQuery = useQuery({

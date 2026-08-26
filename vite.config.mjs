@@ -9,6 +9,20 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
+    host: true,
+  },
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "react-router-dom",
+      "@supabase/supabase-js",
+      "@tanstack/react-query",
+      "lucide-react",
+      "xlsx",
+      "jspdf",
+      "jspdf-autotable",
+    ],
   },
   test: {
     environment: "node",

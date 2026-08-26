@@ -1,18 +1,29 @@
-# Frozen Flow Supabase Setup
+# Momqill Supabase Setup
 
 ## 1. Create the Supabase project
 
 1. Create a new Supabase project.
 2. Keep the project URL and anon key.
 3. Enable email/password auth.
+4. Wait until the project status is available before running SQL. If the logs
+   still show `521`, `57P01`, or `57P03`, the database/auth services are still
+   restarting and SQL execution can fail for reasons outside the app schema.
 
 ## 2. Run the schema
 
-Apply the SQL migration:
+Apply the consolidated SQL schema from the Supabase SQL Editor:
 
-- `supabase/migrations/20260417094500_momqill_inventory.sql`
+- `supabase/combined_schema.sql`
 
-Then seed reference data:
+If Supabase logs show this internal metadata error first:
+
+- `relation "supabase_migrations.schema_migrations" does not exist`
+
+Run this small repair query once, then run the consolidated schema again:
+
+- `supabase/repair_supabase_migration_metadata.sql`
+
+Then seed sample data, if needed:
 
 - `supabase/seeds/frozen_food_seed.sql`
 
@@ -34,8 +45,8 @@ Inside the project root:
 Recommended:
 
 1. Create users in Supabase Auth.
-2. Let the trigger create rows in `public.profiles`.
-3. Update roles in `public.profiles` manually for the initial setup.
+2. Let the trigger create rows in `public.users`.
+3. Update `public.users.full_name` or `public.users.role` from the Team page or SQL Editor if needed.
 
 Suggested first users:
 
@@ -48,16 +59,15 @@ Do not mutate stock with ad hoc table writes from the client.
 
 Use the provided RPC functions:
 
-- `receive_stock(...)`
-- `transfer_stock(...)`
-- `create_stock_adjustment(...)`
-- `dispatch_stock(...)`
+- `process_stock_transaction(...)`
+- `record_incoming(...)`
+- `record_outgoing(...)`
 
 These functions are designed to:
 
 - keep inventory quantities from going negative
 - produce movement ledger rows
-- maintain batch-based stock integrity
+- update product stock and transaction history atomically
 
 ## 6. Current frontend scope
 

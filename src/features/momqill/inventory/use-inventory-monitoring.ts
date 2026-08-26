@@ -1,12 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
-
-import { momqillQueryKeys } from "../shared/query-keys";
-
-import { fetchInventoryMonitoring } from "./inventory-service";
+import { useMemo } from "react";
+import { useMomqillProducts } from "../products/use-products";
+import { buildInventoryMonitoringPayload } from "./inventory-service";
 
 export function useInventoryMonitoring() {
-  return useQuery({
-    queryKey: momqillQueryKeys.inventoryMonitoring(),
-    queryFn: fetchInventoryMonitoring,
-  });
+  const productsQuery = useMomqillProducts();
+
+  const derivedData = useMemo(() => {
+    if (!productsQuery.data) return undefined;
+    return buildInventoryMonitoringPayload(productsQuery.data);
+  }, [productsQuery.data]);
+
+  return {
+    ...productsQuery,
+    data: derivedData,
+  } as any;
 }

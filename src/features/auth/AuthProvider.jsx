@@ -32,8 +32,26 @@ async function fetchProfile(userId) {
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState(() => {
+    try {
+      const cached = localStorage.getItem("momqill_cached_profile");
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [loading, setLoading] = useState(() => {
+    try {
+      const hasToken = Object.keys(localStorage).some(
+        (key) => key.startsWith("sb-") && key.endsWith("-auth-token")
+      );
+      const cachedProfile = localStorage.getItem("momqill_cached_profile");
+      if (hasToken && cachedProfile) {
+        return false; // Optimistic bypass! Render instantly on refresh.
+      }
+    } catch {}
+    return true;
+  });
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
@@ -45,75 +63,64 @@ export function AuthProvider({ children }) {
 
     let isMounted = true;
 
-    async function bootstrap() {
-      const {
-        data: { session: currentSession },
-        error,
-      } = await supabase.auth.getSession();
-
-      if (!isMounted) {
-        return;
-      }
-
-      if (error) {
-        setAuthError(error.message);
-      }
-
-      setSession(currentSession);
-
-      if (currentSession?.user?.id) {
-        try {
-          const currentProfile = await fetchProfile(currentSession.user.id);
-          if (isMounted) {
-            setProfile(currentProfile);
-          }
-        } catch (profileError) {
-          if (isMounted) {
-            setAuthError(profileError.message);
-          }
-        }
-      }
-
+    // Fallback timeout 3.5 detik untuk menjamin loader tidak stuck jika Supabase hang/terblokir
+    const fallbackTimeout = setTimeout(() => {
       if (isMounted) {
+        console.warn("Inisialisasi Auth timed out. Memaksa loading selesai.");
         setLoading(false);
       }
-    }
-
-    bootstrap();
+    }, 3500);
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
+    } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
       if (!isMounted) {
         return;
       }
 
-      setSession(nextSession);
-      setAuthError("");
+      try {
+        setSession(nextSession);
+        setAuthError("");
 
-      if (nextSession?.user?.id) {
-        try {
-          const nextProfile = await fetchProfile(nextSession.user.id);
-          if (isMounted) {
-            setProfile(nextProfile);
+        if (nextSession?.user?.id) {
+          try {
+            const nextProfile = await fetchProfile(nextSession.user.id);
+            if (isMounted) {
+              setProfile(nextProfile);
+              try {
+                localStorage.setItem("momqill_cached_profile", JSON.stringify(nextProfile));
+              } catch {}
+            }
+          } catch (profileError) {
+            if (isMounted) {
+              const cached = localStorage.getItem("momqill_cached_profile");
+              if (!cached) {
+                setProfile(null);
+                setAuthError(profileError.message || "Gagal memuat profil.");
+              }
+            }
           }
-        } catch (profileError) {
-          if (isMounted) {
-            setProfile(null);
-            setAuthError(profileError.message);
-          }
+        } else {
+          setProfile(null);
+          try {
+            localStorage.removeItem("momqill_cached_profile");
+          } catch {}
         }
-      } else {
-        setProfile(null);
-      }
-
-      if (isMounted) {
-        setLoading(false);
+      } catch (err) {
+        if (isMounted) {
+          setAuthError(err.message || "Gagal memperbarui status autentikasi.");
+        }
+      } finally {
+        if (isMounted) {
+          clearTimeout(fallbackTimeout);
+          setLoading(false);
+        }
       }
     });
 
     return () => {
       isMounted = false;
+      clearTimeout(fallbackTimeout);
       subscription.unsubscribe();
     };
   }, []);

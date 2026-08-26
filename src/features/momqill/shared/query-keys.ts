@@ -33,11 +33,6 @@ export async function invalidateAfterProductMutation(queryClient: QueryClient) {
     momqillQueryKeys.productList(),
     momqillQueryKeys.inventory(),
     momqillQueryKeys.dashboard(),
-    momqillQueryKeys.incomingProducts(),
-    momqillQueryKeys.outgoingProducts(),
-    momqillQueryKeys.stockTransactionProducts(),
-    momqillQueryKeys.stockAudit(),
-    momqillQueryKeys.reports(),
   ]);
 }
 
@@ -46,12 +41,7 @@ export async function invalidateAfterIncomingMutation(queryClient: QueryClient) 
     momqillQueryKeys.incoming(),
     momqillQueryKeys.productList(),
     momqillQueryKeys.inventory(),
-    momqillQueryKeys.outgoingProducts(),
-    momqillQueryKeys.stockLogs(),
-    momqillQueryKeys.stockTransactionProducts(),
-    momqillQueryKeys.stockAudit(),
     momqillQueryKeys.dashboard(),
-    momqillQueryKeys.reports(),
   ]);
 }
 
@@ -60,12 +50,7 @@ export async function invalidateAfterOutgoingMutation(queryClient: QueryClient) 
     momqillQueryKeys.outgoing(),
     momqillQueryKeys.productList(),
     momqillQueryKeys.inventory(),
-    momqillQueryKeys.incomingProducts(),
-    momqillQueryKeys.stockLogs(),
-    momqillQueryKeys.stockTransactionProducts(),
-    momqillQueryKeys.stockAudit(),
     momqillQueryKeys.dashboard(),
-    momqillQueryKeys.reports(),
   ]);
 }
 
@@ -74,11 +59,7 @@ export async function invalidateAfterStockTransactionMutation(queryClient: Query
     momqillQueryKeys.stockLogs(),
     momqillQueryKeys.stockAudit(),
     momqillQueryKeys.productList(),
-    momqillQueryKeys.stockTransactionProducts(),
     momqillQueryKeys.inventory(),
-    momqillQueryKeys.incoming(),
-    momqillQueryKeys.outgoing(),
     momqillQueryKeys.dashboard(),
-    momqillQueryKeys.reports(),
   ]);
 }

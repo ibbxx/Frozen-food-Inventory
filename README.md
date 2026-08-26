@@ -4,10 +4,10 @@ Sistem manajemen inventaris modern untuk toko frozen food, dibangun dengan **Rea
 
 ## Fitur Utama
 
-- 🧊 **Manajemen Produk** — Katalog produk frozen food dengan SKU, merek, kategori, dan batas stok minimum
-- 📦 **Kontrol Inventaris** — Pelacakan stok per batch, lokasi freezer, dan tanggal kedaluwarsa
-- 🔄 **Alur Pergerakan Stok** — Catat setiap aktivitas masuk, keluar, pindah, dan penyesuaian
-- ⚠️ **Peringatan Otomatis** — Notifikasi stok menipis dan produk mendekati kedaluwarsa (FEFO)
+- 🧊 **Manajemen Produk** — Katalog produk frozen food dengan kategori, harga publik, dan batas stok minimum
+- 📦 **Kontrol Inventaris** — Pelacakan stok produk, stok minimum, dan status stok rendah
+- 🔄 **Alur Pergerakan Stok** — Catat barang masuk, barang keluar, dan audit perubahan stok
+- ⚠️ **Peringatan Otomatis** — Notifikasi stok menipis dan produk habis
 - 📊 **Dasbor Operasi** — Ringkasan KPI, peringatan kritis, dan pergerakan stok terkini
 - 👥 **Manajemen Tim** — Peran berbasis akses saat ini: Admin dan Staf
 
@@ -26,8 +26,11 @@ Sistem manajemen inventaris modern untuk toko frozen food, dibangun dengan **Rea
 
 ## Database
 Gunakan skrip SQL berikut untuk melakukan setup tabel dan data bawaan:
-- `supabase/migrations/`
+- `supabase/combined_schema.sql`
 - `supabase/seeds/`
+
+Jika Supabase menampilkan `relation "supabase_migrations.schema_migrations" does not exist`, jalankan:
+- `supabase/repair_supabase_migration_metadata.sql`
 
 Panduan lengkap: `docs/FROZEN_FOOD_SUPABASE_SETUP.md`
 

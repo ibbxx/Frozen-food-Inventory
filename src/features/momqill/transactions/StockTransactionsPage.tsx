@@ -1,11 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Keyboard, Zap } from "lucide-react";
+import { Keyboard } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { Badge } from "@/shared/ui/badge";
+
 
 import { PageErrorState } from "../shared/PageErrorState";
 import { PageHero } from "../shared/PageHero";
@@ -164,12 +164,6 @@ export function StockTransactionsPage() {
       ) : null}
 
       <PageHero
-        badge={
-          <Badge className="w-fit gap-2" variant="info">
-            <Zap className="h-3.5 w-3.5" />
-            Pencatatan Cepat
-          </Badge>
-        }
         description="Formulir cepat untuk mencatat perubahan barang masuk dan barang keluar secara langsung. Perubahan jumlah stok akan langsung diperbarui dengan aman."
         title="Transaksi Stok Cepat"
         aside={

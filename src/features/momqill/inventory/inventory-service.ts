@@ -44,7 +44,7 @@ function buildMonitoringRows(products: Product[]): InventoryMonitoringRow[] {
     });
 }
 
-function buildInventoryMonitoringPayload(products: Product[]): InventoryMonitoringPayload {
+export function buildInventoryMonitoringPayload(products: Product[]): InventoryMonitoringPayload {
   const rows = buildMonitoringRows(products);
 
   return {
