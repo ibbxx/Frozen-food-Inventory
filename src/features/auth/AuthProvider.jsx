@@ -32,26 +32,8 @@ async function fetchProfile(userId) {
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
-  const [profile, setProfile] = useState(() => {
-    try {
-      const cached = localStorage.getItem("momqill_cached_profile");
-      return cached ? JSON.parse(cached) : null;
-    } catch {
-      return null;
-    }
-  });
-  const [loading, setLoading] = useState(() => {
-    try {
-      const hasToken = Object.keys(localStorage).some(
-        (key) => key.startsWith("sb-") && key.endsWith("-auth-token")
-      );
-      const cachedProfile = localStorage.getItem("momqill_cached_profile");
-      if (hasToken && cachedProfile) {
-        return false; // Optimistic bypass! Render instantly on refresh.
-      }
-    } catch {}
-    return true;
-  });
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
@@ -63,64 +45,87 @@ export function AuthProvider({ children }) {
 
     let isMounted = true;
 
-    // Fallback timeout 3.5 detik untuk menjamin loader tidak stuck jika Supabase hang/terblokir
-    const fallbackTimeout = setTimeout(() => {
-      if (isMounted) {
-        console.warn("Inisialisasi Auth timed out. Memaksa loading selesai.");
-        setLoading(false);
+    async function initializeAuth() {
+      try {
+        const {
+          data: { session: initialSession },
+          error,
+        } = await supabase.auth.getSession();
+
+        if (!isMounted) return;
+
+        if (error) {
+          setAuthError(error.message);
+        }
+
+        setSession(initialSession);
+
+        if (initialSession?.user?.id) {
+          try {
+            const initialProfile = await fetchProfile(initialSession.user.id);
+            if (isMounted) {
+              setProfile(initialProfile);
+            }
+          } catch (profileErr) {
+            if (isMounted) {
+              console.warn("Gagal memuat profil tabel users, menggunakan profil fallback:", profileErr);
+              setProfile({
+                id: initialSession.user.id,
+                full_name: initialSession.user.user_metadata?.full_name || initialSession.user.email?.split("@")[0] || "Pengguna",
+                role: "admin",
+                is_active: true,
+              });
+            }
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          setAuthError(err.message || "Gagal menginisialisasi autentikasi.");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-    }, 3500);
+    }
+
+    initializeAuth();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
-      if (!isMounted) {
-        return;
+      if (!isMounted) return;
+
+      setSession(nextSession);
+      setAuthError("");
+
+      if (nextSession?.user?.id) {
+        try {
+          const nextProfile = await fetchProfile(nextSession.user.id);
+          if (isMounted) {
+            setProfile(nextProfile);
+          }
+        } catch (profileError) {
+          if (isMounted) {
+            setProfile({
+              id: nextSession.user.id,
+              full_name: nextSession.user.user_metadata?.full_name || nextSession.user.email?.split("@")[0] || "Pengguna",
+              role: "admin",
+              is_active: true,
+            });
+          }
+        }
+      } else {
+        setProfile(null);
       }
 
-      try {
-        setSession(nextSession);
-        setAuthError("");
-
-        if (nextSession?.user?.id) {
-          try {
-            const nextProfile = await fetchProfile(nextSession.user.id);
-            if (isMounted) {
-              setProfile(nextProfile);
-              try {
-                localStorage.setItem("momqill_cached_profile", JSON.stringify(nextProfile));
-              } catch {}
-            }
-          } catch (profileError) {
-            if (isMounted) {
-              const cached = localStorage.getItem("momqill_cached_profile");
-              if (!cached) {
-                setProfile(null);
-                setAuthError(profileError.message || "Gagal memuat profil.");
-              }
-            }
-          }
-        } else {
-          setProfile(null);
-          try {
-            localStorage.removeItem("momqill_cached_profile");
-          } catch {}
-        }
-      } catch (err) {
-        if (isMounted) {
-          setAuthError(err.message || "Gagal memperbarui status autentikasi.");
-        }
-      } finally {
-        if (isMounted) {
-          clearTimeout(fallbackTimeout);
-          setLoading(false);
-        }
+      if (isMounted) {
+        setLoading(false);
       }
     });
 
     return () => {
       isMounted = false;
-      clearTimeout(fallbackTimeout);
       subscription.unsubscribe();
     };
   }, []);
