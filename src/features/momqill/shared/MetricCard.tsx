@@ -1,40 +1,43 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/ui/card";
-
 import type { ReactNode } from "react";
 
 interface MetricCardProps {
-  description: string;
-  icon: ReactNode;
+  description?: string;
+  icon?: ReactNode;
   title: string;
-  toneClassName: string;
-  value: number;
+  toneClassName?: string;
+  value: number | string;
 }
 
 export function MetricCard({
   description,
   icon,
   title,
-  toneClassName,
   value,
 }: MetricCardProps) {
   return (
-    <Card className={`border-white/70 shadow-sm ${toneClassName}`}>
-      <CardHeader className="flex flex-row items-start justify-between pb-3">
-        <div>
-          <CardDescription className="text-slate-600">{title}</CardDescription>
-          <CardTitle className="mt-2 text-3xl font-semibold text-slate-900">{value}</CardTitle>
+    <div className="group relative flex flex-col justify-between rounded-xl border border-border/80 bg-white p-4 sm:p-5 shadow-xs transition-all duration-150 hover:border-slate-300 hover:shadow-sm">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-medium text-muted-foreground">
+          {title}
+        </span>
+        {icon ? (
+          <div className="text-muted-foreground/80 transition-colors group-hover:text-foreground">
+            {icon}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="my-2 sm:my-3">
+        <div className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground tabular-nums">
+          {value}
         </div>
-        <div className="rounded-2xl bg-white/80 p-3 shadow-sm">{icon}</div>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-slate-600">{description}</p>
-      </CardContent>
-    </Card>
+      </div>
+
+      {description ? (
+        <p className="text-xs text-muted-foreground/80 leading-relaxed">
+          {description}
+        </p>
+      ) : null}
+    </div>
   );
 }

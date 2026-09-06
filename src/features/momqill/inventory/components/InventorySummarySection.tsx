@@ -1,4 +1,4 @@
-import { AlertTriangle, PackageCheck, PackageX } from "lucide-react";
+import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 
 import { MetricCard } from "../../shared/MetricCard";
 
@@ -12,26 +12,20 @@ export function InventorySummarySection({
   inventory,
 }: InventorySummarySectionProps) {
   return (
-    <section className="grid gap-4 md:grid-cols-3">
+    <section className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
       <MetricCard
-        description="Produk berada di atas batas stok minimum."
-        icon={<PackageCheck className="h-5 w-5 text-emerald-600" />}
-        title="Stok Aman"
-        toneClassName="bg-emerald-50"
+        icon={<CheckCircle2 className="h-4 w-4 text-emerald-600" />}
+        title="Status Aman"
         value={inventory?.summary.safe ?? 0}
       />
       <MetricCard
-        description="Produk perlu segera diprioritaskan untuk restok."
-        icon={<AlertTriangle className="h-5 w-5 text-amber-600" />}
-        title="Stok Rendah"
-        toneClassName="bg-amber-50"
+        icon={<AlertTriangle className="h-4 w-4 text-amber-600" />}
+        title="Perlu Restok"
         value={inventory?.summary.low ?? 0}
       />
       <MetricCard
-        description="Produk habis dan berisiko menghambat penjualan."
-        icon={<PackageX className="h-5 w-5 text-red-600" />}
-        title="Stok Habis"
-        toneClassName="bg-red-50"
+        icon={<XCircle className="h-4 w-4 text-destructive" />}
+        title="Stok Kosong"
         value={inventory?.summary.out ?? 0}
       />
     </section>

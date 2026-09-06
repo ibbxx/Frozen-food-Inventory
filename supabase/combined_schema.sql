@@ -260,14 +260,28 @@ create table if not exists public.products (
   id uuid primary key default gen_random_uuid(),
   product_name text not null,
   category text not null default 'Daging',
-  public_price numeric(12, 2),
+  public_price numeric,
   image_url text,
   is_public boolean not null default true,
   current_stock integer not null default 0 check (current_stock >= 0),
   min_stock integer not null default 0 check (min_stock >= 0),
   created_at timestamptz not null default timezone('utc', now()),
-  constraint products_category_check check (category in ('Daging', 'Suki', 'Paket Hemat'))
+  constraint products_category_check check (category in ('Daging', 'Suki', 'Paket Hemat', 'Bumbu', 'Sosis', 'Mayo', 'Bakso', 'Kulit', 'Snack Frozen', 'Sapi', 'Keju', 'Saos', 'Marinasi', 'Sayuran Frozen', 'Nuggets', 'Kentang', 'Ayam'))
 );
+
+-- Pastikan constraint kategori di database aktif selalu sinkron dengan 17 kategori
+do $$
+begin
+  if exists (
+    select 1 from information_schema.table_constraints
+    where table_schema = 'public' and table_name = 'products' and constraint_name = 'products_category_check'
+  ) then
+    alter table public.products drop constraint products_category_check;
+    alter table public.products add constraint products_category_check
+      check (category in ('Daging', 'Suki', 'Paket Hemat', 'Bumbu', 'Sosis', 'Mayo', 'Bakso', 'Kulit', 'Snack Frozen', 'Sapi', 'Keju', 'Saos', 'Marinasi', 'Sayuran Frozen', 'Nuggets', 'Kentang', 'Ayam'));
+  end if;
+end;
+$$;
 
 -- Tabel Incoming Items (Pencatatan barang masuk)
 create table if not exists public.incoming_items (

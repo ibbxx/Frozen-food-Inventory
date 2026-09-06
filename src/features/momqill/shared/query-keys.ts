@@ -17,6 +17,7 @@ export const momqillQueryKeys = {
   stockAudit: () => ["momqill", "stock-audit"] as const,
   stockLogs: (limit = 12) => ["momqill", "stock-logs", limit] as const,
   stockTransactionProducts: () => ["momqill", "stock-transaction", "products"] as const,
+  publicCatalog: () => ["public-catalog"] as const,
 };
 
 async function invalidateMany(
@@ -33,6 +34,7 @@ export async function invalidateAfterProductMutation(queryClient: QueryClient) {
     momqillQueryKeys.productList(),
     momqillQueryKeys.inventory(),
     momqillQueryKeys.dashboard(),
+    momqillQueryKeys.publicCatalog(),
   ]);
 }
 
@@ -42,6 +44,7 @@ export async function invalidateAfterIncomingMutation(queryClient: QueryClient) 
     momqillQueryKeys.productList(),
     momqillQueryKeys.inventory(),
     momqillQueryKeys.dashboard(),
+    momqillQueryKeys.publicCatalog(),
   ]);
 }
 
@@ -51,6 +54,7 @@ export async function invalidateAfterOutgoingMutation(queryClient: QueryClient) 
     momqillQueryKeys.productList(),
     momqillQueryKeys.inventory(),
     momqillQueryKeys.dashboard(),
+    momqillQueryKeys.publicCatalog(),
   ]);
 }
 
@@ -61,5 +65,6 @@ export async function invalidateAfterStockTransactionMutation(queryClient: Query
     momqillQueryKeys.productList(),
     momqillQueryKeys.inventory(),
     momqillQueryKeys.dashboard(),
+    momqillQueryKeys.publicCatalog(),
   ]);
 }

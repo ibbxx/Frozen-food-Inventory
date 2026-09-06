@@ -9,5 +9,10 @@ export const supabase = appEnv.isSupabaseConfigured
         persistSession: true,
         detectSessionInUrl: true,
       },
+      realtime: {
+        params: {
+          eventsPerSecond: 2,
+        },
+      },
     })
   : null;

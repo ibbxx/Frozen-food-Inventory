@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { lazy } from "react";
 
-export const APP_NAME = "Momqill Frozen Food";
+export const APP_NAME = "Karunrung Frozen Food";
 
 function lazyPage(importer, exportName) {
   return lazy(() =>

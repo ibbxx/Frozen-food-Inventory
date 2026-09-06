@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Snowflake } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Navigate, useLocation } from "react-router-dom";
@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Input } from "@/shared/ui/input";
 
 import { useAuth } from "./AuthProvider";
-
 
 const loginSchema = z.object({
   email: z.string().email("Masukkan alamat email yang valid."),
@@ -55,72 +54,123 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen">
-      <div className="hidden w-1/2 flex-col justify-center bg-primary px-12 md:flex lg:px-24">
-        <div className="flex items-center gap-3 text-primary-foreground mb-8">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-foreground text-primary">
-            <Snowflake className="h-6 w-6" />
+    <div className="flex min-h-screen w-full bg-[hsl(var(--background))]">
+      {/* Brand Showcase (Desktop Only: md:flex) */}
+      <div className="hidden md:flex w-1/2 flex-col justify-between border-r border-border bg-white p-12 lg:p-16">
+        <div className="flex items-center gap-3.5">
+          <img
+            alt="Karunrung Frozen Food Logo"
+            className="h-12 w-12 object-contain shrink-0 drop-shadow-xs"
+            src="/logo-icon.png"
+          />
+          <div>
+            <span className="font-display text-xl font-bold tracking-tight text-foreground block">
+              Karunrung Frozen Food
+            </span>
+            <span className="text-xs text-muted-foreground font-medium">
+              Sistem Manajemen Inventori
+            </span>
           </div>
-          <span className="text-xl font-semibold tracking-tight">Momqill Frozen Food</span>
         </div>
-        <h1 className="text-4xl font-bold tracking-tight text-primary-foreground sm:text-5xl lg:text-6xl max-w-lg mb-6 leading-tight">
-          Kelola stok frozen food dengan lebih rapi.
-        </h1>
-        <p className="text-lg text-primary-foreground/80 max-w-md">
-          Pantau produk, batch, masa kedaluwarsa, dan lokasi penyimpanan dalam satu tempat.
-        </p>
+
+        <div className="space-y-4 max-w-md">
+          <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight text-foreground leading-snug">
+            Manajemen stok rantai dingin yang terintegrasi dan presisi.
+          </h1>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Akses inventori produk beku, catat barang masuk dan keluar, serta pantau ketersediaan stok secara real-time.
+          </p>
+        </div>
+
+        <div className="text-xs text-muted-foreground">
+          &copy; {new Date().getFullYear()} Karunrung Frozen Food. Hak cipta dilindungi.
+        </div>
       </div>
 
-      <div className="flex w-full flex-col justify-center px-4 md:w-1/2 lg:px-24">
-        <div className="mx-auto w-full max-w-md">
-          <div className="mb-8 md:hidden flex items-center justify-center gap-3 text-primary">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <Snowflake className="h-6 w-6" />
-            </div>
-            <span className="text-2xl font-bold tracking-tight">Momqill Frozen Food</span>
+      {/* Authentication Form Card */}
+      <div className="flex w-full md:w-1/2 flex-col justify-center items-center px-4 py-8 sm:px-8 lg:px-16">
+        <div className="w-full max-w-md space-y-6">
+          {/* Mobile Header Brand Display */}
+          <div className="md:hidden flex items-center justify-center gap-2.5 mb-2">
+            <img
+              alt="Karunrung Frozen Food Logo"
+              className="h-10 w-10 object-contain shrink-0 drop-shadow-xs"
+              src="/logo-icon.png"
+            />
+            <span className="font-display text-lg font-bold tracking-tight text-foreground">
+              Karunrung Frozen Food
+            </span>
           </div>
 
-          <Card className="border-0 shadow-none md:border md:shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-2xl">Login</CardTitle>
+          <Card className="border border-border/80 bg-white shadow-xs rounded-xl">
+            <CardHeader className="space-y-1.5 p-6 pb-4">
+              <CardTitle className="font-display text-xl font-bold text-foreground">
+                Masuk ke Sistem
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Gunakan kredensial akun Anda untuk mengakses panel inventori.
+              </p>
             </CardHeader>
 
-            <CardContent>
-              <form className="grid gap-4" onSubmit={handleSubmit(onSubmit)}>
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">Alamat Email</label>
+            <CardContent className="p-6 pt-2">
+              <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-slate-700 block">
+                    Alamat Email
+                  </label>
                   <Input
                     autoComplete="email"
-                    placeholder="admin@momqill.id"
+                    className="h-11 text-sm rounded-lg"
+                    placeholder="admin@karunrung.com"
                     {...register("email")}
                     type="email"
                   />
-                  {errors.email ? <span className="text-xs text-destructive">{errors.email.message}</span> : null}
+                  {errors.email ? (
+                    <span className="text-xs text-destructive block">
+                      {errors.email.message}
+                    </span>
+                  ) : null}
                 </div>
 
-                <div className="grid gap-2">
-                  <label className="text-sm font-medium">Kata Sandi</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-slate-700 block">
+                    Kata Sandi
+                  </label>
                   <Input
                     autoComplete="current-password"
+                    className="h-11 text-sm rounded-lg"
                     placeholder="••••••••"
                     {...register("password")}
                     type="password"
                   />
-                  {errors.password ? <span className="text-xs text-destructive">{errors.password.message}</span> : null}
+                  {errors.password ? (
+                    <span className="text-xs text-destructive block">
+                      {errors.password.message}
+                    </span>
+                  ) : null}
                 </div>
 
                 {submitError || authError ? (
-                  <div className="text-sm font-medium text-destructive">{submitError || authError}</div>
+                  <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+                    <ShieldAlert className="h-4 w-4 shrink-0" />
+                    <span>{submitError || authError}</span>
+                  </div>
                 ) : null}
 
-                <Button className="w-full mt-2" disabled={isSubmitting || loading} type="submit">
-                  {isSubmitting ? "Sedang masuk..." : "Masuk"}
+                <Button
+                  className="w-full h-11 text-sm font-semibold mt-2 rounded-lg"
+                  disabled={isSubmitting || loading}
+                  type="submit"
+                >
+                  {isSubmitting ? "Memverifikasi..." : "Masuk"}
                 </Button>
               </form>
             </CardContent>
-
-
           </Card>
+
+          <p className="text-center text-xs text-muted-foreground">
+            Lupa kata sandi? Hubungi Administrator.
+          </p>
         </div>
       </div>
     </div>

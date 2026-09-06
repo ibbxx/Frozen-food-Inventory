@@ -164,15 +164,12 @@ export function StockTransactionsPage() {
       ) : null}
 
       <PageHero
-        description="Formulir cepat untuk mencatat perubahan barang masuk dan barang keluar secara langsung. Perubahan jumlah stok akan langsung diperbarui dengan aman."
+        description="Pencatatan cepat transaksi mutasi barang masuk dan keluar."
         title="Transaksi Stok Cepat"
         aside={
-          <div className="rounded-2xl border border-cyan-100 bg-white/90 px-4 py-3 text-sm text-slate-600 shadow-sm">
-            <div className="flex items-center gap-2 font-medium text-slate-900">
-              <Keyboard className="h-4 w-4 text-cyan-600" />
-              Pintasan Keyboard
-            </div>
-            <div className="mt-1">Tekan <strong>/</strong> untuk kembali fokus ke pencarian produk.</div>
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-slate-50 px-3 py-1.5 text-xs text-muted-foreground">
+            <Keyboard className="h-3.5 w-3.5 text-primary" />
+            <span>Tekan <kbd className="px-1.5 py-0.5 rounded border border-border bg-white font-mono font-bold text-foreground">/</kbd> untuk mencari produk</span>
           </div>
         }
       />

@@ -78,13 +78,7 @@ export function StockAuditPage() {
       ) : null}
 
       <PageHero
-        badge={
-          <Badge className="w-fit gap-2" variant="warning">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            Riwayat Perubahan
-          </Badge>
-        }
-        description="Pantau siapa yang mengubah stok, kapan perubahan terjadi, dan berapa selisihnya. Staf hanya dapat melihat riwayat perubahan dalam 30 hari terakhir demi kelancaran operasional."
+        description="Riwayat perubahan stok dan pencatatan selisih inventori oleh petugas."
         title="Audit Stok"
         actions={
           profile?.role === "admin" ? (
@@ -96,7 +90,7 @@ export function StockAuditPage() {
         }
       />
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <section className="rounded-lg border border-border bg-white p-4 shadow-xs">
         <label className="grid gap-2 text-sm">
           <span className="font-medium text-slate-700">Cari produk, staf, atau catatan</span>
           <input

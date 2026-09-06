@@ -1,5 +1,5 @@
 import { AlertCircle, CheckCircle2, X } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { Button } from "@/shared/ui/button";
 
@@ -12,19 +12,26 @@ interface ToastMessageProps {
 }
 
 export function ToastMessage({ message, onClose, tone }: ToastMessageProps) {
+  const onCloseRef = useRef(onClose);
   useEffect(() => {
-    const timeoutId = window.setTimeout(onClose, 3200);
-    return () => window.clearTimeout(timeoutId);
+    onCloseRef.current = onClose;
   }, [onClose]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      onCloseRef.current();
+    }, 3200);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   const isSuccess = tone === "success";
   const Icon = isSuccess ? CheckCircle2 : AlertCircle;
 
   return (
     <div
-      aria-live="polite"
+      aria-live={isSuccess ? "polite" : "assertive"}
       className="fixed right-4 top-4 z-[60] w-[calc(100vw-2rem)] max-w-sm rounded-2xl border bg-white/95 p-4 shadow-lg backdrop-blur"
-      role="status"
+      role={isSuccess ? "status" : "alert"}
     >
       <div className="flex items-start gap-3">
         <div

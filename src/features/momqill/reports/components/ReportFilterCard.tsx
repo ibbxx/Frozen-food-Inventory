@@ -57,35 +57,42 @@ export function ReportFilterCard({
   startDate,
 }: ReportFilterCardProps) {
   return (
-    <Card className="border-cyan-100 shadow-sm">
-      <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <CardTitle>Laporan Inventori</CardTitle>
-          <CardDescription>
-            Filter pergerakan stok berdasarkan rentang tanggal lalu ekspor ke PDF atau Excel.
-          </CardDescription>
-        </div>
-
-        <div className="flex flex-col gap-3 md:flex-row">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium text-slate-700">Tanggal Awal</label>
-            <Input onChange={onStartDateChange} type="date" value={startDate} />
-          </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium text-slate-700">Tanggal Akhir</label>
-            <Input onChange={onEndDateChange} type="date" value={endDate} />
-          </div>
-        </div>
+    <Card className="border-border bg-white shadow-xs">
+      <CardHeader className="p-4 sm:p-6 pb-2">
+        <CardTitle className="font-display text-base sm:text-lg font-bold">Periode & Ringkasan Laporan</CardTitle>
+        <CardDescription className="text-xs text-muted-foreground">
+          Pilih rentang tanggal untuk melihat rekapitulasi data dan mengunduh laporan.
+        </CardDescription>
       </CardHeader>
+      <CardContent className="space-y-6 p-4 sm:p-6 pt-2">
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="grid gap-2 text-sm">
+            <span className="font-medium text-slate-700">Tanggal Mulai</span>
+            <input
+              className="flex h-10 w-full rounded-md border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={onStartDateChange}
+              type="date"
+              value={startDate}
+            />
+          </label>
+          <label className="grid gap-2 text-sm">
+            <span className="font-medium text-slate-700">Tanggal Selesai</span>
+            <input
+              className="flex h-10 w-full rounded-md border border-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={onEndDateChange}
+              type="date"
+              value={endDate}
+            />
+          </label>
+        </div>
 
-      <CardContent className="grid gap-4">
         {isInvalidRange ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            Tanggal akhir harus sama dengan atau setelah tanggal awal.
+          <div className="rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700 font-mono">
+            Tanggal mulai tidak boleh lebih besar dari tanggal selesai.
           </div>
         ) : null}
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
           <SummaryMetric
             colorClassName="bg-cyan-200"
             title="Total Produk"

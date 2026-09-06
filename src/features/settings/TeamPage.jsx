@@ -142,51 +142,46 @@ export function TeamPage() {
       )}
 
       <PageHero
-        badge={
-          <Badge className="w-fit bg-cyan-100 text-cyan-800 hover:bg-cyan-100/80" variant="outline">
-            Pengaturan Sistem
-          </Badge>
-        }
         title="Pengaturan Tim"
-        description="Kelola nama lengkap staf dan atur tingkat akses mereka pada sistem inventori Momqill Frozen Food secara mudah."
+        description="Kelola nama lengkap staf dan atur tingkat akses mereka pada sistem inventori Karunrung Frozen Food."
       />
 
-      {/* Metrics Banner */}
-      <section className="grid gap-4 sm:grid-cols-3">
-        <Card className="border-cyan-50 bg-gradient-to-br from-white to-cyan-50/20">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+      {/* Metrics Banner (Mobile First: 1 col on mobile, 3 col on sm) */}
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
+        <Card className="border-border bg-white shadow-xs">
+          <CardHeader className="p-4 sm:p-5 pb-3">
+            <CardDescription className="font-mono text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
               Total Anggota
             </CardDescription>
-            <CardTitle className="text-3xl font-bold text-slate-900">
-              {isLoading ? "..." : `${metrics.total} Orang`}
+            <CardTitle className="font-mono text-2xl sm:text-3xl font-bold tabular-nums text-foreground mt-1">
+              {isLoading ? "..." : `${metrics.total}`} <span className="text-xs font-sans font-normal text-muted-foreground">Petugas</span>
             </CardTitle>
           </CardHeader>
         </Card>
-        <Card className="border-cyan-50 bg-gradient-to-br from-white to-cyan-50/20">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+        <Card className="border-border bg-white shadow-xs">
+          <CardHeader className="p-4 sm:p-5 pb-3">
+            <CardDescription className="font-mono text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
               Pengelola (Admin)
             </CardDescription>
-            <CardTitle className="text-3xl font-bold text-teal-700">
-              {isLoading ? "..." : `${metrics.admins} Orang`}
+            <CardTitle className="font-mono text-2xl sm:text-3xl font-bold tabular-nums text-primary mt-1">
+              {isLoading ? "..." : `${metrics.admins}`} <span className="text-xs font-sans font-normal text-muted-foreground">Admin</span>
             </CardTitle>
           </CardHeader>
         </Card>
-        <Card className="border-cyan-50 bg-gradient-to-br from-white to-cyan-50/20">
-          <CardHeader className="pb-2">
-            <CardDescription className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+        <Card className="border-border bg-white shadow-xs">
+          <CardHeader className="p-4 sm:p-5 pb-3">
+            <CardDescription className="font-mono text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
               Petugas Toko (Staf)
             </CardDescription>
-            <CardTitle className="text-3xl font-bold text-blue-700">
-              {isLoading ? "..." : `${metrics.staff} Orang`}
+            <CardTitle className="font-mono text-2xl sm:text-3xl font-bold tabular-nums text-foreground mt-1">
+              {isLoading ? "..." : `${metrics.staff}`} <span className="text-xs font-sans font-normal text-muted-foreground">Staf</span>
             </CardTitle>
           </CardHeader>
         </Card>
       </section>
 
       {/* Search and List */}
-      <Card className="border-cyan-100 shadow-sm">
+      <Card className="border-border bg-white shadow-xs">
         <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Daftar Anggota Tim</CardTitle>
@@ -298,7 +293,7 @@ export function TeamPage() {
             <div className="space-y-1">
               <h4 className="font-semibold text-slate-900">Bagaimana Cara Menambah Anggota Baru?</h4>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Mintalah staf atau pengelola baru untuk mendaftar akun di aplikasi Momqill Frozen Food terlebih dahulu. 
+                Mintalah staf atau pengelola baru untuk mendaftar akun di aplikasi Karunrung Frozen Food terlebih dahulu. 
                 Setelah mereka berhasil mendaftar, nama mereka akan otomatis muncul dalam daftar di atas sebagai <strong>Petugas (Staf)</strong>. 
                 Anda kemudian dapat mengubah peran dan nama lengkap mereka secara langsung melalui tombol <strong>Ubah</strong>.
               </p>

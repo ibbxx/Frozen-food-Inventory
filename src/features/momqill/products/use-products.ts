@@ -11,7 +11,9 @@ export function useMomqillProducts() {
       const data = await fetchMomqillProducts();
       try {
         localStorage.setItem("momqill_cached_products", JSON.stringify(data));
-      } catch {}
+      } catch {
+        // Abaikan error penyimpanan localStorage
+      }
       return data;
     },
     initialData: () => {

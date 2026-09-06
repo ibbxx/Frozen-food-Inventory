@@ -37,7 +37,7 @@ export async function exportInventoryReportToPdf(report: InventoryReportPayload)
   });
 
   document.setFontSize(16);
-  document.text("Laporan Inventori Momqill Frozen Food", 40, 42);
+  document.text("Laporan Inventori Karunrung Frozen Food", 40, 42);
 
   document.setFontSize(10);
   document.text(

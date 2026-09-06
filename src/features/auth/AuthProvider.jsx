@@ -5,7 +5,7 @@ import { supabase } from "@/shared/lib/supabase";
 
 const AuthContext = createContext(null);
 const MISSING_SUPABASE_MESSAGE =
-  "Supabase belum dikonfigurasi. Isi VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY untuk menggunakan Momqill.";
+  "Supabase belum dikonfigurasi. Isi VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY untuk menggunakan sistem Karunrung Frozen Food.";
 
 async function fetchProfile(userId) {
   if (!supabase || !userId) {
@@ -45,109 +45,34 @@ export function AuthProvider({ children }) {
 
     let isMounted = true;
 
-    async function initializeAuth() {
-      try {
-        // Wrapper timeout 3 detik untuk getSession
-        // (Mencegah hang akibat localStorage lock Supabase yang korup)
-        const getSessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error("Supabase getSession timeout (kemungkinan lock korup)")), 3000);
-        });
-
-        const {
-          data: { session: initialSession },
-          error,
-        } = await Promise.race([getSessionPromise, timeoutPromise]);
-
+    // 1. Ambil sesi awal tanpa timeout destruktif yang menghapus localStorage
+    supabase.auth
+      .getSession()
+      .then(({ data: { session: initialSession }, error }) => {
         if (!isMounted) return;
-
         if (error) {
           setAuthError(error.message);
         }
-
         setSession(initialSession);
-
-        if (initialSession?.user?.id) {
-          try {
-            const initialProfile = await fetchProfile(initialSession.user.id);
-            if (isMounted) {
-              setProfile(initialProfile);
-            }
-          } catch (profileErr) {
-            if (isMounted) {
-              console.warn("Gagal memuat profil tabel users, menggunakan profil fallback:", profileErr);
-              setProfile({
-                id: initialSession.user.id,
-                full_name: initialSession.user.user_metadata?.full_name || initialSession.user.email?.split("@")[0] || "Pengguna",
-                role: "admin",
-                is_active: true,
-              });
-            }
-          }
-        }
-      } catch (err) {
-        if (isMounted) {
-          console.error("Kesalahan fatal saat inisialisasi sesi:", err);
-          
-          // Auto-recovery: Jika terjadi timeout atau error internal (kemungkinan lock korup),
-          // kita hapus seluruh state localStorage yang terkait dengan Supabase Auth
-          try {
-            const keysToRemove = [];
-            for (let i = 0; i < localStorage.length; i++) {
-              const key = localStorage.key(i);
-              if (key && key.startsWith("sb-")) {
-                keysToRemove.push(key);
-              }
-            }
-            keysToRemove.forEach((key) => localStorage.removeItem(key));
-            localStorage.removeItem("momqill_cached_profile");
-            console.warn("Storage dibersihkan untuk recovery.");
-          } catch (storageErr) {
-            console.error("Gagal membersihkan storage:", storageErr);
-          }
-
-          setAuthError(err.message || "Gagal menginisialisasi autentikasi.");
-        }
-      } finally {
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        console.warn("Peringatan saat inisialisasi sesi:", err);
+      })
+      .finally(() => {
         if (isMounted) {
           setLoading(false);
         }
-      }
-    }
+      });
 
-    initializeAuth();
-
+    // 2. Listener auth dibuat murni sinkron untuk menghindari deadlock internal GoTrue/Supabase
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       if (!isMounted) return;
-
       setSession(nextSession);
       setAuthError("");
-
-      if (nextSession?.user?.id) {
-        try {
-          const nextProfile = await fetchProfile(nextSession.user.id);
-          if (isMounted) {
-            setProfile(nextProfile);
-          }
-        } catch (profileError) {
-          if (isMounted) {
-            setProfile({
-              id: nextSession.user.id,
-              full_name: nextSession.user.user_metadata?.full_name || nextSession.user.email?.split("@")[0] || "Pengguna",
-              role: "admin",
-              is_active: true,
-            });
-          }
-        }
-      } else {
-        setProfile(null);
-      }
-
-      if (isMounted) {
-        setLoading(false);
-      }
+      setLoading(false);
     });
 
     return () => {
@@ -155,6 +80,47 @@ export function AuthProvider({ children }) {
       subscription.unsubscribe();
     };
   }, []);
+
+  // 3. Muat data profil user secara asinkron di effect terpisah setelah sesi siap
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!session?.user?.id) {
+      setProfile(null);
+      return undefined;
+    }
+
+    async function loadProfile() {
+      try {
+        const userProfile = await fetchProfile(session.user.id);
+        if (isMounted) {
+          setProfile(userProfile);
+        }
+      } catch (profileErr) {
+        if (isMounted) {
+          console.warn(
+            "Gagal memuat profil tabel users, menggunakan profil fallback:",
+            profileErr,
+          );
+          setProfile({
+            id: session.user.id,
+            full_name:
+              session.user.user_metadata?.full_name ||
+              session.user.email?.split("@")[0] ||
+              "Pengguna",
+            role: "admin",
+            is_active: true,
+          });
+        }
+      }
+    }
+
+    loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [session?.user?.id]);
 
   async function signIn({ email, password }) {
     if (!supabase) {

@@ -1,7 +1,7 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 
 const DATABASE_CONFIG_MESSAGE =
-  "Supabase belum dikonfigurasi. Isi VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY sebelum menjalankan Momqill.";
+  "Supabase belum dikonfigurasi. Isi VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY sebelum menjalankan sistem Karunrung Frozen Food.";
 
 function isPostgrestError(error: unknown): error is PostgrestError {
   return Boolean(
@@ -42,6 +42,19 @@ function extractDatabaseDetail(error: unknown): string {
 
     if (normalizedMessage.includes("duplicate key")) {
       return "Data yang sama sudah ada. Periksa kembali input sebelum menyimpan.";
+    }
+
+    if (
+      error.code === "57P03" ||
+      error.code === "57P01" ||
+      normalizedMessage.includes("shutting down") ||
+      normalizedMessage.includes("terminating connection")
+    ) {
+      return "Database sedang dalam pemulihan atau restart. Silakan tunggu 30–60 detik lalu coba kembali.";
+    }
+
+    if (error.code === "42P01" || normalizedMessage.includes("does not exist")) {
+      return "Tabel atau relasi database belum tersedia. Silakan hubungi admin untuk menjalankan skrip perbaikan database.";
     }
 
     if (error.details) {

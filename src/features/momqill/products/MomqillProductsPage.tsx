@@ -38,9 +38,9 @@ export function MomqillProductsPage() {
   const summary = useMemo(
     () => ({
       total: products.length,
-      low: products.filter((product) => product.current_stock <= product.min_stock && product.current_stock > 0)
+      low: products.filter((product: Product) => product.current_stock <= product.min_stock && product.current_stock > 0)
         .length,
-      out: products.filter((product) => product.current_stock <= 0).length,
+      out: products.filter((product: Product) => product.current_stock <= 0).length,
     }),
     [products],
   );

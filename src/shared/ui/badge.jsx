@@ -1,37 +1,40 @@
-import { cva } from "class-variance-authority"
-import * as React from "react"
+import { cva } from "class-variance-authority";
 
-import { cn } from "@/shared/lib/utils"
+import { cn } from "@/shared/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 font-mono text-[11px] font-medium transition-colors select-none tabular-nums",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+          "border-primary/20 bg-primary/10 text-primary hover:bg-primary/15",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "border-border bg-slate-100 text-slate-700 hover:bg-slate-200/70",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+          "border-red-200 bg-red-50 text-red-700 hover:bg-red-100/70",
         danger:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
-        success: "border-transparent bg-emerald-100 text-emerald-800 hover:bg-emerald-100/80 dark:bg-emerald-900/30 dark:text-emerald-400",
-        warning: "border-transparent bg-amber-100 text-amber-800 hover:bg-amber-100/80 dark:bg-amber-900/30 dark:text-amber-400",
-        info: "border-transparent bg-blue-100 text-blue-800 hover:bg-blue-100/80 dark:bg-blue-900/30 dark:text-blue-400",
+          "border-red-200 bg-red-50 text-red-700 hover:bg-red-100/70",
+        outline:
+          "border-border bg-white text-slate-700 hover:bg-slate-50",
+        success:
+          "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100/70",
+        warning:
+          "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100/70",
+        info:
+          "border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100/70",
       },
     },
     defaultVariants: {
       variant: "default",
     },
-  }
-)
+  },
+);
 
 function Badge({ className, variant, ...props }) {
   return (
     <div className={cn(badgeVariants({ variant }), className)} {...props} />
-  )
+  );
 }
 
-export { Badge, badgeVariants }
+export { Badge, badgeVariants };

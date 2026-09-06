@@ -1,16 +1,27 @@
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 
 import { AppHeader } from "./AppHeader";
 import { AppSidebar } from "./AppSidebar";
 
 export function AppShell() {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
-    <div className="flex min-h-screen w-full bg-muted/40">
-      <AppSidebar />
-      <div className="flex w-full flex-col sm:gap-4 sm:py-4 sm:pl-64">
-        <AppHeader />
-        <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-          <Outlet />
+    <div className="flex min-h-screen w-full bg-[hsl(var(--background))]">
+      {/* Sidebar (Desktop permanent + Mobile slide-over drawer) */}
+      <AppSidebar
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+      />
+
+      {/* Main Content Area */}
+      <div className="flex min-w-0 flex-1 flex-col md:pl-64">
+        <AppHeader onOpenMobileMenu={() => setIsMobileMenuOpen(true)} />
+        <main className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-8">
+          <div className="mx-auto max-w-7xl">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

@@ -1,7 +1,24 @@
 export type UUID = string;
 export type ISODateString = string;
 export type UserRole = "admin" | "staff";
-export type ProductCategory = "Daging" | "Suki" | "Paket Hemat";
+export type ProductCategory =
+  | "Daging"
+  | "Suki"
+  | "Paket Hemat"
+  | "Bumbu"
+  | "Sosis"
+  | "Mayo"
+  | "Bakso"
+  | "Kulit"
+  | "Snack Frozen"
+  | "Sapi"
+  | "Keju"
+  | "Saos"
+  | "Marinasi"
+  | "Sayuran Frozen"
+  | "Nuggets"
+  | "Kentang"
+  | "Ayam";
 export type StockTransactionType = "incoming" | "outgoing";
 export type PublicCatalogStockStatus = "available" | "limited" | "out";
 

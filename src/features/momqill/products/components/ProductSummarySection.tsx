@@ -1,4 +1,4 @@
-import { Package2, TriangleAlert } from "lucide-react";
+import { AlertTriangle, Package2, XCircle } from "lucide-react";
 
 import { MetricCard } from "../../shared/MetricCard";
 
@@ -14,26 +14,20 @@ interface ProductSummarySectionProps {
 
 export function ProductSummarySection({ summary }: ProductSummarySectionProps) {
   return (
-    <section className="grid gap-4 md:grid-cols-3">
+    <section className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
       <MetricCard
-        description="Jumlah produk aktif yang dikelola saat ini."
-        icon={<Package2 className="h-5 w-5 text-cyan-600" />}
-        title="Total Produk"
-        toneClassName="bg-cyan-50"
+        icon={<Package2 className="h-4 w-4 text-primary" />}
+        title="Total Varian"
         value={summary.total}
       />
       <MetricCard
-        description="Produk yang sudah menyentuh batas stok minimum."
-        icon={<TriangleAlert className="h-5 w-5 text-amber-600" />}
+        icon={<AlertTriangle className="h-4 w-4 text-amber-600" />}
         title="Perlu Restok"
-        toneClassName="bg-amber-50"
         value={summary.low}
       />
       <MetricCard
-        description="Produk dengan stok nol dan perlu tindakan cepat."
-        icon={<TriangleAlert className="h-5 w-5 text-red-600" />}
-        title="Stok Habis"
-        toneClassName="bg-red-50"
+        icon={<XCircle className="h-4 w-4 text-destructive" />}
+        title="Stok Kosong"
         value={summary.out}
       />
     </section>
