@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { productCategoryOptions } from "@/shared/lib/product-categories";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { CatalogProductCard } from "./components/CatalogProductCard";
 import {
@@ -139,8 +140,26 @@ export function PublicCatalogPage() {
         {/* Product Grid */}
         <main className="mt-5 sm:mt-6 flex-1">
           {catalogQuery.isLoading ? (
-            <div className="grid min-h-[260px] place-items-center rounded-lg border border-border bg-white p-8 text-center text-xs font-mono text-muted-foreground">
-              Memuat katalog produk Karunrung Frozen Food...
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <div
+                  className="flex flex-col overflow-hidden rounded-lg border border-border bg-white shadow-2xs"
+                  key={index}
+                >
+                  <Skeleton className="aspect-[4/3] w-full rounded-none" />
+                  <div className="flex flex-1 flex-col p-4 space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <div className="mt-auto pt-2">
+                      <Skeleton className="h-9 w-full rounded-md" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : catalogQuery.isError ? (
             <div className="grid min-h-[260px] place-items-center rounded-lg border border-red-200 bg-red-50/50 p-6 text-center text-red-700">
