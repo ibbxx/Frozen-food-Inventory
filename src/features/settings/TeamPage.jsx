@@ -27,6 +27,13 @@ function getGradient(id) {
   return GRADIENT_COLORS[index];
 }
 
+function getMemberDisplayName(member) {
+  if (!member?.full_name || /ibnu(f|g)ajar/i.test(member.full_name) || member.full_name === member.email?.split("@")[0]) {
+    return member?.role === "admin" ? "Admin Gudang" : "Staf Gudang";
+  }
+  return member.full_name;
+}
+
 function getInitials(name) {
   if (!name) return "U";
   const parts = name.trim().split(" ");
@@ -228,10 +235,10 @@ export function TeamPage() {
                               member.id
                             )} text-sm font-semibold text-white shadow-sm`}
                           >
-                            {getInitials(member.full_name)}
+                            {getInitials(getMemberDisplayName(member))}
                           </div>
                           <span className="font-semibold text-slate-900">
-                            {member.full_name || "Belum Mengisi Nama"}
+                            {getMemberDisplayName(member)}
                           </span>
                         </div>
                       </td>

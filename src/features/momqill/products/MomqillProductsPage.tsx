@@ -5,6 +5,7 @@ import { PageErrorState } from "../shared/PageErrorState";
 import { invalidateAfterProductMutation } from "../shared/query-keys";
 import { ToastMessage } from "../shared/ToastMessage";
 
+import { CategoryManageModal } from "./CategoryManageModal";
 import { ProductHeroSection } from "./components/ProductHeroSection";
 import { ProductSummarySection } from "./components/ProductSummarySection";
 import { ProductTable } from "./components/ProductTable";
@@ -30,10 +31,16 @@ export function MomqillProductsPage() {
   const queryClient = useQueryClient();
   const productsQuery = useMomqillProducts();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [toastState, setToastState] = useState<ToastState>(null);
 
   const products = useMemo(() => productsQuery.data ?? [], [productsQuery.data]);
+
+  const usedCategoryNames = useMemo(
+    () => new Set(products.map((p: Product) => p.category)),
+    [products],
+  );
 
   const summary = useMemo(
     () => ({
@@ -140,7 +147,10 @@ export function MomqillProductsPage() {
         />
       ) : null}
 
-      <ProductHeroSection onCreate={handleCreate} />
+      <ProductHeroSection
+        onCreate={handleCreate}
+        onManageCategories={() => setIsCategoryModalOpen(true)}
+      />
       <ProductSummarySection summary={summary} />
       <ProductTable onEdit={handleEdit} products={products} />
 
@@ -150,6 +160,12 @@ export function MomqillProductsPage() {
         isSubmitting={isSubmitting}
         onClose={handleCloseModal}
         onSubmit={handleSubmit}
+      />
+
+      <CategoryManageModal
+        isOpen={isCategoryModalOpen}
+        onClose={() => setIsCategoryModalOpen(false)}
+        usedCategoryNames={usedCategoryNames}
       />
     </div>
   );

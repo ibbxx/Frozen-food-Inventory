@@ -238,7 +238,7 @@ select
   coalesce(
     nullif(trim(backup.full_name), ''),
     nullif(trim(au.raw_user_meta_data ->> 'full_name'), ''),
-    split_part(au.email, '@', 1)
+    'Admin'
   ) as full_name,
   case
     when backup.role in ('admin', 'staff') then backup.role
@@ -337,7 +337,11 @@ create index if not exists idx_stock_logs_created_at on public.stock_logs (creat
 create or replace view public.profiles with (security_invoker = true) as
 select
   id,
-  coalesce(full_name, split_part(email, '@', 1)) as full_name,
+  case
+    when full_name is null or trim(full_name) = '' or full_name ilike '%ibnu%ajar%' or full_name = split_part(email, '@', 1)
+      then case when role = 'admin' then 'Admin' else 'Staf Gudang' end
+    else full_name
+  end as full_name,
   role
 from public.users;
 
@@ -370,9 +374,13 @@ declare
   v_full_name text;
 begin
   v_full_name := coalesce(
-    new.raw_user_meta_data ->> 'full_name',
-    split_part(new.email, '@', 1)
+    nullif(trim(new.raw_user_meta_data ->> 'full_name'), ''),
+    'Admin'
   );
+
+  if v_full_name ilike '%ibnu%ajar%' then
+    v_full_name := 'Admin';
+  end if;
 
   insert into public.users (id, email, full_name, role)
   values (new.id, new.email, v_full_name, 'admin')

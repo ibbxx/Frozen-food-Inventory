@@ -197,11 +197,11 @@ export function AppSidebar({ isOpen, onClose }) {
       <div className="border-t border-border p-3.5 bg-slate-50/50">
         <div className="flex items-center gap-2.5">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700 font-mono">
-            {profile?.full_name?.charAt(0) || "U"}
+            {profile?.full_name?.charAt(0) || (isAdmin ? "A" : "P")}
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-xs font-medium text-foreground">
-              {profile?.full_name || "Petugas Gudang"}
+              {profile?.full_name || (isAdmin ? "Admin Gudang" : "Petugas Gudang")}
             </p>
             <p className="font-mono text-[10px] uppercase text-muted-foreground">
               {profile?.role || "Staff"}

@@ -1,14 +1,18 @@
 import {
+  deleteCategoryFromDatabase,
+  fetchCategoriesFromDatabase,
   fetchIncomingItemsFromDatabase,
   fetchOutgoingItemsFromDatabase,
   fetchProfilesFromDatabase,
   fetchProductsFromDatabase,
   fetchStockLogsFromDatabase,
+  insertCategoryIntoDatabase,
   insertProductIntoDatabase,
   processStockTransactionInDatabase,
   recordIncomingInDatabase,
   recordOutgoingInDatabase,
   type DatabaseListOptions,
+  updateCategoryInDatabase,
   updateProductInDatabase,
 } from "../lib/momqill-database";
 
@@ -18,6 +22,7 @@ import type {
   CreateStockTransactionInput,
   IncomingItem,
   OutgoingItem,
+  ProductCategoryRecord,
   ProfileSummary,
   Product,
   StockLog,
@@ -34,6 +39,29 @@ interface ProductPayload {
 }
 
 export type ListOptions = DatabaseListOptions;
+
+// ─── Kategori ───────────────────────────────────────────────────────────────
+
+export async function listCategories(): Promise<ProductCategoryRecord[]> {
+  return fetchCategoriesFromDatabase();
+}
+
+export async function createCategory(name: string): Promise<ProductCategoryRecord> {
+  return insertCategoryIntoDatabase(name);
+}
+
+export async function updateCategory(
+  categoryId: string,
+  name: string,
+): Promise<ProductCategoryRecord> {
+  return updateCategoryInDatabase(categoryId, name);
+}
+
+export async function deleteCategory(categoryId: string): Promise<void> {
+  return deleteCategoryFromDatabase(categoryId);
+}
+
+// ─── Produk ──────────────────────────────────────────────────────────────────
 
 export async function listProducts(): Promise<Product[]> {
   return fetchProductsFromDatabase();

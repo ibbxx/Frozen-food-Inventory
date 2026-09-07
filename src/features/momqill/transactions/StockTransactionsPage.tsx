@@ -174,22 +174,27 @@ export function StockTransactionsPage() {
         }
       />
 
-      <section className="grid gap-6 xl:grid-cols-[1fr_1.1fr]">
-        <StockTransactionFormCard
-          errors={errors}
-          isSubmitting={transactionMutation.isPending}
-          onProductSearchChange={setProductSearch}
-          onSubmit={handleSubmit(onSubmit)}
-          pickProduct={pickProduct}
-          productSearch={productSearch}
-          productSearchRef={productSearchRef}
-          products={filteredProducts}
-          register={register}
-          selectedProduct={selectedProduct}
-          selectedType={selectedType}
-          stockExceeded={stockExceeded}
-        />
-        <RecentStockLogsCard history={recentLogs} isLoading={logsQuery.isLoading} />
+      <section className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
+        <div className="lg:col-span-5 xl:col-span-5">
+          <StockTransactionFormCard
+            errors={errors}
+            isSubmitting={transactionMutation.isPending}
+            onProductSearchChange={setProductSearch}
+            onSubmit={handleSubmit(onSubmit)}
+            onTypeChange={(type) => setValue("type", type, { shouldValidate: true })}
+            pickProduct={pickProduct}
+            productSearch={productSearch}
+            productSearchRef={productSearchRef}
+            products={filteredProducts}
+            register={register}
+            selectedProduct={selectedProduct}
+            selectedType={selectedType}
+            stockExceeded={stockExceeded}
+          />
+        </div>
+        <div className="lg:col-span-7 xl:col-span-7">
+          <RecentStockLogsCard history={recentLogs} isLoading={logsQuery.isLoading} />
+        </div>
       </section>
     </div>
   );

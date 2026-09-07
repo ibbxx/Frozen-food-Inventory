@@ -48,7 +48,7 @@ export function AppHeader({ onOpenMobileMenu }) {
         {/* User Full Name (Tablet/Desktop) */}
         <div className="hidden sm:flex flex-col text-right leading-tight">
           <span className="text-xs font-semibold text-foreground truncate max-w-[140px]">
-            {profile?.full_name || "Petugas"}
+            {profile?.full_name || (profile?.role === "admin" ? "Admin Gudang" : "Petugas")}
           </span>
           <span className="text-[11px] text-muted-foreground">Gudang Utama</span>
         </div>

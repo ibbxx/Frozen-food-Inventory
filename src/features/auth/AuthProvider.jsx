@@ -7,6 +7,23 @@ const AuthContext = createContext(null);
 const MISSING_SUPABASE_MESSAGE =
   "Supabase belum dikonfigurasi. Isi VITE_SUPABASE_URL dan VITE_SUPABASE_ANON_KEY untuk menggunakan sistem Karunrung Frozen Food.";
 
+function sanitizeDisplayName(name, email, role) {
+  const fallback = role === "admin" ? "Admin Gudang" : "Staf Gudang";
+  if (!name || typeof name !== "string") {
+    return fallback;
+  }
+  const trimmed = name.trim();
+  if (
+    trimmed === "" ||
+    /ibnu(f|g)ajar/i.test(trimmed) ||
+    trimmed.includes("@") ||
+    (email && trimmed.toLowerCase() === email.split("@")[0].toLowerCase())
+  ) {
+    return fallback;
+  }
+  return trimmed;
+}
+
 async function fetchProfile(userId) {
   if (!supabase || !userId) {
     return null;
@@ -24,7 +41,7 @@ async function fetchProfile(userId) {
 
   return {
     id: data.id,
-    full_name: data.full_name || data.email?.split("@")[0] || "Pengguna",
+    full_name: sanitizeDisplayName(data.full_name, data.email, data.role),
     role: data.role,
     is_active: true,
   };
@@ -104,10 +121,11 @@ export function AuthProvider({ children }) {
           );
           setProfile({
             id: session.user.id,
-            full_name:
-              session.user.user_metadata?.full_name ||
-              session.user.email?.split("@")[0] ||
-              "Pengguna",
+            full_name: sanitizeDisplayName(
+              session.user.user_metadata?.full_name,
+              session.user.email,
+              "admin",
+            ),
             role: "admin",
             is_active: true,
           });

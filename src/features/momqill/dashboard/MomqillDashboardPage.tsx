@@ -51,11 +51,11 @@ export function MomqillDashboardPage() {
   const dashboard = dashboardQuery.data;
   const summary = dashboard?.summary;
   const greetingName = useMemo(() => {
-    if (!profile?.full_name) {
-      return "Tim Gudang";
+    if (!profile?.full_name || /ibnu(f|g)ajar/i.test(profile.full_name)) {
+      return profile?.role === "admin" ? "Admin" : "Tim Gudang";
     }
     return profile.full_name;
-  }, [profile?.full_name]);
+  }, [profile?.full_name, profile?.role]);
 
   if (dashboardQuery.isLoading && !dashboard) {
     return (

@@ -7,6 +7,7 @@ import type {
   CreateStockTransactionInput,
   IncomingItem,
   OutgoingItem,
+  ProductCategoryRecord,
   ProfileSummary,
   Product,
   StockLog,
@@ -20,6 +21,7 @@ export interface DatabaseListOptions {
 
 const PRODUCT_SELECT_FIELDS =
   "id, product_name, category, public_price, image_url, is_public, current_stock, min_stock, created_at";
+const CATEGORY_SELECT_FIELDS = "id, name, created_at";
 const INCOMING_SELECT_FIELDS =
   "id, date, product_id, quantity, supplier_name, created_by, created_at";
 const OUTGOING_SELECT_FIELDS =
@@ -323,5 +325,91 @@ export async function recordOutgoingInDatabase(
     return data as OutgoingItem;
   } catch (error) {
     throw createDatabaseError("mencatat barang keluar", error);
+  }
+}
+
+// ─── Kategori Produk ────────────────────────────────────────────────────────
+
+export async function fetchCategoriesFromDatabase(): Promise<ProductCategoryRecord[]> {
+  const supabase = getSupabaseClient();
+
+  try {
+    const { data, error } = await supabase
+      .from("product_categories")
+      .select(CATEGORY_SELECT_FIELDS)
+      .order("name", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    throw createDatabaseError("memuat daftar kategori", error);
+  }
+}
+
+export async function insertCategoryIntoDatabase(
+  name: string,
+): Promise<ProductCategoryRecord> {
+  const supabase = getSupabaseClient();
+
+  try {
+    const { data, error } = await supabase
+      .from("product_categories")
+      .insert({ name: name.trim() } as never)
+      .select(CATEGORY_SELECT_FIELDS)
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    throw createDatabaseError("menyimpan kategori baru", error);
+  }
+}
+
+export async function updateCategoryInDatabase(
+  categoryId: string,
+  name: string,
+): Promise<ProductCategoryRecord> {
+  const supabase = getSupabaseClient();
+
+  try {
+    const { data, error } = await supabase
+      .from("product_categories")
+      .update({ name: name.trim() } as never)
+      .eq("id", categoryId)
+      .select(CATEGORY_SELECT_FIELDS)
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    throw createDatabaseError("memperbarui kategori", error);
+  }
+}
+
+export async function deleteCategoryFromDatabase(
+  categoryId: string,
+): Promise<void> {
+  const supabase = getSupabaseClient();
+
+  try {
+    const { error } = await supabase
+      .from("product_categories")
+      .delete()
+      .eq("id", categoryId);
+
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
+    throw createDatabaseError("menghapus kategori", error);
   }
 }

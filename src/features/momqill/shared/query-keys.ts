@@ -2,6 +2,7 @@ import type { InventoryReportFilters } from "../types/database";
 import type { QueryClient } from "@tanstack/react-query";
 
 export const momqillQueryKeys = {
+  categoryList: () => ["momqill", "categories"] as const,
   dashboard: () => ["momqill", "dashboard"] as const,
   incoming: () => ["momqill", "incoming"] as const,
   incomingHistory: (limit = 8) => ["momqill", "incoming", "history", limit] as const,
@@ -35,6 +36,12 @@ export async function invalidateAfterProductMutation(queryClient: QueryClient) {
     momqillQueryKeys.inventory(),
     momqillQueryKeys.dashboard(),
     momqillQueryKeys.publicCatalog(),
+  ]);
+}
+
+export async function invalidateAfterCategoryMutation(queryClient: QueryClient) {
+  await invalidateMany(queryClient, [
+    momqillQueryKeys.categoryList(),
   ]);
 }
 

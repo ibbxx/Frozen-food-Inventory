@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+
 import {
   AlertCircle,
   ImagePlus,
@@ -12,17 +13,17 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { compressImage, formatFileSize } from "@/shared/lib/image-compressor";
-import { productCategoryOptions } from "@/shared/lib/product-categories";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Modal } from "@/shared/ui/modal";
 
 import type { ProductFormValues } from "./products-service";
+import { useCategories } from "./use-categories";
 import type { Product } from "../types/database";
 
 const productFormSchema = z.object({
   product_name: z.string().min(3, "Nama produk minimal 3 karakter."),
-  category: z.enum(productCategoryOptions),
+  category: z.string().min(1, "Kategori harus dipilih."),
   public_price: z.preprocess(
     (value) => (value === "" || value === null ? null : Number(value)),
     z.number().min(0, "Harga publik tidak boleh negatif.").nullable(),
@@ -55,6 +56,7 @@ export function ProductFormModal({
   onSubmit,
 }: ProductFormModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { data: categoryNames = [] } = useCategories();
 
   // States untuk pengelolaan gambar
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -76,7 +78,7 @@ export function ProductFormModal({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       product_name: "",
-      category: "Daging",
+      category: "",
       public_price: null,
       image_url: "",
       is_public: true,
@@ -93,7 +95,7 @@ export function ProductFormModal({
     const currentImg = initialProduct?.image_url ?? "";
     reset({
       product_name: initialProduct?.product_name ?? "",
-      category: initialProduct?.category ?? "Daging",
+      category: initialProduct?.category ?? categoryNames[0] ?? "Daging",
       public_price: initialProduct?.public_price ?? null,
       image_url: currentImg,
       is_public: initialProduct?.is_public ?? true,
@@ -206,7 +208,7 @@ export function ProductFormModal({
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               {...register("category")}
             >
-              {productCategoryOptions.map((category) => (
+              {categoryNames.map((category) => (
                 <option key={category} value={category}>
                   {category}
                 </option>

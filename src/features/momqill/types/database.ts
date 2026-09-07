@@ -1,24 +1,19 @@
 export type UUID = string;
 export type ISODateString = string;
 export type UserRole = "admin" | "staff";
-export type ProductCategory =
-  | "Daging"
-  | "Suki"
-  | "Paket Hemat"
-  | "Bumbu"
-  | "Sosis"
-  | "Mayo"
-  | "Bakso"
-  | "Kulit"
-  | "Snack Frozen"
-  | "Sapi"
-  | "Keju"
-  | "Saos"
-  | "Marinasi"
-  | "Sayuran Frozen"
-  | "Nuggets"
-  | "Kentang"
-  | "Ayam";
+
+/**
+ * Kategori produk kini dikelola secara dinamis di tabel `product_categories`.
+ * Type ini dipertahankan sebagai `string` agar kompatibel dengan data Supabase.
+ */
+export type ProductCategory = string;
+
+/** Satu record kategori dari tabel `product_categories`. */
+export interface ProductCategoryRecord {
+  id: UUID;
+  name: string;
+  created_at: string;
+}
 export type StockTransactionType = "incoming" | "outgoing";
 export type PublicCatalogStockStatus = "available" | "limited" | "out";
 
@@ -245,6 +240,19 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export interface Database {
   public: {
     Tables: {
+      product_categories: {
+        Row: ProductCategoryRecord;
+        Insert: {
+          id?: UUID;
+          name: string;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       users: {
         Row: UserProfile;
         Insert: {
