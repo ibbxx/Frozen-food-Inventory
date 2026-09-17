@@ -22,12 +22,12 @@ Contoh pembacaan folder saat menambah kode:
 
 - Tambah route/layout global: `src/app/*`
 - Tambah tombol/input/card reusable: `src/shared/ui/*`
-- Tambah logic produk/inventory/report: `src/features/momqill/*`
+- Tambah logic produk/inventory/report: `src/features/inventory/*`
 - Tambah helper global: `src/shared/lib/*`
-- Tambah data access Momqill terpusat: `src/features/momqill/shared/repository.ts`
+- Tambah data access inventori terpusat: `src/features/inventory/shared/repository.ts`
 
 Kalau nanti mau lanjut refactor, langkah berikut yang paling masuk akal:
 
-- Pecah `src/features/momqill` menjadi `dashboard`, `products`, `inventory`, `incoming`, `outgoing`, `reports`, dan `shared`.
+- Pecah `src/features/inventory` menjadi `dashboard`, `products`, `inventory`, `incoming`, `outgoing`, `reports`, dan `shared`.
 - Tambahkan `index.ts` atau `index.js` per fitur untuk mengurangi import path yang panjang.
 - Pisahkan service Supabase dan mapper data bila kompleksitas query mulai naik.

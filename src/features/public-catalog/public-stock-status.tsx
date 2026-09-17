@@ -1,4 +1,4 @@
-import type { PublicCatalogStockStatus } from "@/features/momqill/types/database";
+import type { PublicCatalogStockStatus } from "@/features/inventory/types/database";
 import { Badge } from "@/shared/ui/badge";
 
 export function publicStockLabel(status: PublicCatalogStockStatus): string {

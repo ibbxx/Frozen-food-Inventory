@@ -20,7 +20,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import type { PublicCatalogStockStatus } from "@/features/momqill/types/database";
+import type { PublicCatalogStockStatus } from "@/features/inventory/types/database";
 import { productCategoryOptions } from "@/shared/lib/product-categories";
 import { Button } from "@/shared/ui/button";
 import {

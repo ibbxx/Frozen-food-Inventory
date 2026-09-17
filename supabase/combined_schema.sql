@@ -1,8 +1,8 @@
 -- ============================================================================
--- MOMQILL INVENTORY DATABASE SCHEMA (CONSOLIDATED - NO ROLE RESTRICTIONS)
+-- KARUNRUNG FROZEN FOOD INVENTORY DATABASE SCHEMA (CONSOLIDATED - NO ROLE RESTRICTIONS)
 -- ============================================================================
 -- Berkas skema gabungan ini mendefinisikan struktur database lengkap untuk 
--- proyek Momqill Inventory. Semua tabel, tipe data, view, fungsi, trigger, 
+-- proyek Karunrung Frozen Food Inventory. Semua tabel, tipe data, view, fungsi, trigger, 
 -- dan kebijakan keamanan (RLS) diinisialisasi dalam bentuk finalnya.
 -- Pada versi ini, pembatasan hak akses berbasis role (admin/staff) dinonaktifkan
 -- sehingga semua pengguna terautentikasi memiliki akses penuh.
@@ -20,7 +20,7 @@ create extension if not exists "pgcrypto";
 
 -- Simpan data user/profil yang masih bisa dipertahankan sebelum objek lama
 -- dibersihkan. Temp table ini hanya hidup selama eksekusi SQL Editor berjalan.
-create temp table if not exists _momqill_user_backup (
+create temp table if not exists _karunrung_user_backup (
   id uuid primary key,
   email text,
   full_name text,
@@ -45,13 +45,13 @@ begin
     )
   then
     execute $copy_users$
-      insert into pg_temp._momqill_user_backup (id, email, full_name, role)
+      insert into pg_temp._karunrung_user_backup (id, email, full_name, role)
       select id, email, full_name, role::text
       from public.users
       on conflict (id) do update
         set email = excluded.email,
-            full_name = coalesce(excluded.full_name, pg_temp._momqill_user_backup.full_name),
-            role = coalesce(excluded.role, pg_temp._momqill_user_backup.role)
+            full_name = coalesce(excluded.full_name, pg_temp._karunrung_user_backup.full_name),
+            role = coalesce(excluded.role, pg_temp._karunrung_user_backup.role)
     $copy_users$;
   end if;
 
@@ -79,7 +79,7 @@ begin
     )
   then
     execute $copy_profiles$
-      insert into pg_temp._momqill_user_backup (id, email, full_name, role)
+      insert into pg_temp._karunrung_user_backup (id, email, full_name, role)
       select
         p.id,
         au.email,
@@ -91,9 +91,9 @@ begin
       from public.profiles p
       join auth.users au on au.id = p.id
       on conflict (id) do update
-        set email = coalesce(excluded.email, pg_temp._momqill_user_backup.email),
-            full_name = coalesce(excluded.full_name, pg_temp._momqill_user_backup.full_name),
-            role = coalesce(excluded.role, pg_temp._momqill_user_backup.role)
+        set email = coalesce(excluded.email, pg_temp._karunrung_user_backup.email),
+            full_name = coalesce(excluded.full_name, pg_temp._karunrung_user_backup.full_name),
+            role = coalesce(excluded.role, pg_temp._karunrung_user_backup.role)
     $copy_profiles$;
   end if;
 end;
@@ -245,7 +245,7 @@ select
     else 'admin'
   end as role
 from auth.users au
-left join pg_temp._momqill_user_backup backup on backup.id = au.id
+left join pg_temp._karunrung_user_backup backup on backup.id = au.id
 where au.email is not null
 on conflict (id) do update
   set email = excluded.email,

@@ -2,8 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar, Info, Mail, Pencil, Search, Shield, User } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { PageHero } from "@/features/momqill/shared/PageHero";
-import { ToastMessage } from "@/features/momqill/shared/ToastMessage";
+import { PageHero } from "@/features/inventory/shared/PageHero";
+import { ToastMessage } from "@/features/inventory/shared/ToastMessage";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";

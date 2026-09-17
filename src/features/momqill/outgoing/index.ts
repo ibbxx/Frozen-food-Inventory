@@ -1,1 +1,0 @@
-export { MomqillOutgoingPage } from "./MomqillOutgoingPage";

@@ -1,4 +1,4 @@
-import { Package2, Store } from "lucide-react";
+import { Package2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Badge } from "@/shared/ui/badge";
@@ -10,11 +10,7 @@ import {
   CatalogFilterBar,
   type CatalogFilters,
 } from "./components/CatalogFilterBar";
-import {
-  createWhatsappLink,
-  storeOptions,
-  type StoreOption,
-} from "./public-catalog-service";
+import { createWhatsappLink } from "./public-catalog-service";
 import { usePublicCatalog } from "./use-public-catalog";
 
 const DEFAULT_FILTERS: CatalogFilters = {
@@ -25,10 +21,9 @@ const DEFAULT_FILTERS: CatalogFilters = {
 };
 
 export function PublicCatalogPage() {
-  const [selectedStore, setSelectedStore] = useState<StoreOption>("Hertasning");
   const [filters, setFilters] = useState<CatalogFilters>(DEFAULT_FILTERS);
 
-  const catalogQuery = usePublicCatalog(selectedStore);
+  const catalogQuery = usePublicCatalog();
 
   const filteredProducts = useMemo(() => {
     const products = catalogQuery.data ?? [];
@@ -99,8 +94,8 @@ export function PublicCatalogPage() {
                 Katalog Frozen Food &bull; Stok Real-Time
               </h1>
               <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                Pilih cabang toko tujuan Anda, temukan produk beku favorit, dan hubungkan langsung
-                ke tim kasir via WhatsApp untuk pemesanan cepat.
+                Temukan produk beku favorit Anda dan hubungkan langsung ke tim kasir
+                Karunrung Frozen Food via WhatsApp untuk pemesanan cepat.
               </p>
             </div>
 
@@ -168,7 +163,7 @@ export function PublicCatalogPage() {
                   key={product.id}
                   onWhatsappClick={() => undefined}
                   product={product}
-                  whatsappLink={createWhatsappLink(product.product_name, selectedStore)}
+                  whatsappLink={createWhatsappLink(product.product_name)}
                 />
               ))}
             </div>

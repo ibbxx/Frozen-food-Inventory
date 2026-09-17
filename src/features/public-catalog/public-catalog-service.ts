@@ -1,12 +1,9 @@
-import type { Database, PublicCatalogProduct } from "@/features/momqill/types/database";
+import type { Database, PublicCatalogProduct } from "@/features/inventory/types/database";
 import { appEnv } from "@/shared/lib/env";
 import { publicSupabase } from "@/shared/lib/public-supabase";
 import { supabase as authSupabase } from "@/shared/lib/supabase";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-
-export const storeOptions = ["Hertasning", "Paccerakang"] as const;
-export type StoreOption = (typeof storeOptions)[number];
 
 function getCatalogClient(): SupabaseClient<Database> {
   // Gunakan authSupabase jika tersedia (agar admin/staff yang login dapat langsung melihat preview),
@@ -80,11 +77,11 @@ export async function fetchPublicCatalogProducts(): Promise<PublicCatalogProduct
   }
 }
 
-export function createWhatsappLink(productName: string, store: StoreOption): string | null {
+export function createWhatsappLink(productName: string): string | null {
   if (!appEnv.publicWhatsappNumber) {
     return null;
   }
 
-  const message = `Halo admin Momqil, saya lihat di katalog website, apakah ${productName} di toko ${store} ready?`;
+  const message = `Halo admin Karunrung Frozen Food, saya lihat di katalog website, apakah ${productName} ready?`;
   return `https://wa.me/${appEnv.publicWhatsappNumber}?text=${encodeURIComponent(message)}`;
 }

@@ -1,4 +1,4 @@
-# Frozen Flow — Sistem Inventaris Toko Frozen Food
+# Karunrung Frozen Food — Sistem Inventaris Toko Frozen Food
 
 Sistem manajemen inventaris modern untuk toko frozen food, dibangun dengan **React + Vite + Supabase**.
 

@@ -28,7 +28,7 @@ export const appRoutes = [
     label: "Dasbor",
     title: "Dasbor",
     icon: LayoutDashboard,
-    component: lazyPage(() => import("@/features/momqill/dashboard"), "MomqillDashboardPage"),
+    component: lazyPage(() => import("@/features/inventory/dashboard"), "DashboardPage"),
   },
   {
     path: "products",
@@ -36,7 +36,7 @@ export const appRoutes = [
     label: "Produk",
     title: "Master Produk",
     icon: Package,
-    component: lazyPage(() => import("@/features/momqill/products"), "MomqillProductsPage"),
+    component: lazyPage(() => import("@/features/inventory/products"), "ProductsPage"),
   },
   {
     path: "inventory",
@@ -44,7 +44,7 @@ export const appRoutes = [
     label: "Monitoring Stok",
     title: "Monitoring Stok",
     icon: Archive,
-    component: lazyPage(() => import("@/features/momqill/inventory"), "MomqillInventoryPage"),
+    component: lazyPage(() => import("@/features/inventory/inventory"), "InventoryPage"),
   },
   {
     path: "transactions",
@@ -53,7 +53,7 @@ export const appRoutes = [
     title: "Transaksi Stok",
     icon: ArrowLeftRight,
     component: lazyPage(
-      () => import("@/features/momqill/transactions"),
+      () => import("@/features/inventory/transactions"),
       "StockTransactionsPage",
     ),
   },
@@ -64,7 +64,7 @@ export const appRoutes = [
     title: "Audit Stok",
     icon: ShieldCheck,
     component: lazyPage(
-      () => import("@/features/momqill/stock-audit"),
+      () => import("@/features/inventory/stock-audit"),
       "StockAuditPage",
     ),
   },
@@ -74,7 +74,7 @@ export const appRoutes = [
     label: "Barang Masuk",
     title: "Barang Masuk",
     icon: ArrowDownLeft,
-    component: lazyPage(() => import("@/features/momqill/incoming"), "MomqillIncomingPage"),
+    component: lazyPage(() => import("@/features/inventory/incoming"), "IncomingPage"),
   },
   {
     path: "outgoing",
@@ -82,7 +82,7 @@ export const appRoutes = [
     label: "Barang Keluar",
     title: "Barang Keluar",
     icon: ArrowUpRight,
-    component: lazyPage(() => import("@/features/momqill/outgoing"), "MomqillOutgoingPage"),
+    component: lazyPage(() => import("@/features/inventory/outgoing"), "OutgoingPage"),
   },
   {
     path: "reports",
@@ -90,7 +90,7 @@ export const appRoutes = [
     label: "Laporan",
     title: "Laporan",
     icon: FileText,
-    component: lazyPage(() => import("@/features/momqill/reports"), "MomqillReportsPage"),
+    component: lazyPage(() => import("@/features/inventory/reports"), "ReportsPage"),
   },
   {
     path: "settings/team",

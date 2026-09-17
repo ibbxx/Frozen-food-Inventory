@@ -1,5 +1,5 @@
 -- ============================================================================
--- MOMQILL INVENTORY — SCRIPT CEK STATUS & KESEHATAN DATABASE
+-- KARUNRUNG FROZEN FOOD INVENTORY — SCRIPT CEK STATUS & KESEHATAN DATABASE
 -- ============================================================================
 -- Script ini aman dijalankan kapan saja di Supabase SQL Editor.
 -- Output akan langsung tampil sebagai tabel pada tab "Results".

@@ -1,7 +1,7 @@
 import { MessageCircleMore, Package2 } from "lucide-react";
 import { useState } from "react";
 
-import type { PublicCatalogProduct } from "@/features/momqill/types/database";
+import type { PublicCatalogProduct } from "@/features/inventory/types/database";
 import { Button } from "@/shared/ui/button";
 import {
   Card,

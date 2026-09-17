@@ -1,4 +1,4 @@
-# Momqill Supabase Setup
+# Karunrung Frozen Food — Supabase Setup
 
 ## 1. Create the Supabase project
 
