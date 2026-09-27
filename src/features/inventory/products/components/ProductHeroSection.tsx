@@ -6,7 +6,8 @@ import { PageHero } from "../../shared/PageHero";
 
 interface ProductHeroSectionProps {
   onCreate: () => void;
-  onManageCategories: () => void;
+  /** Hanya diberikan untuk admin, karena pengelolaan kategori dibatasi role admin. */
+  onManageCategories?: () => void;
 }
 
 export function ProductHeroSection({ onCreate, onManageCategories }: ProductHeroSectionProps) {
@@ -14,10 +15,12 @@ export function ProductHeroSection({ onCreate, onManageCategories }: ProductHero
     <PageHero
       actions={
         <>
-          <Button onClick={onManageCategories} size="sm" type="button" variant="outline">
-            <Tags className="mr-2 h-4 w-4" />
-            Kelola Kategori
-          </Button>
+          {onManageCategories ? (
+            <Button onClick={onManageCategories} size="sm" type="button" variant="outline">
+              <Tags className="mr-2 h-4 w-4" />
+              Kelola Kategori
+            </Button>
+          ) : null}
           <Button onClick={onCreate} size="sm" type="button">
             <Plus className="mr-2 h-4 w-4" />
             Tambah Produk

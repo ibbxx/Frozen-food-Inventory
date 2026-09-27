@@ -11,6 +11,7 @@ function reportRowsToPlainObject(report: InventoryReportPayload) {
     "Stok Awal": row.opening_stock,
     "Total Masuk": row.total_incoming,
     "Total Keluar": row.total_outgoing,
+    Penyesuaian: row.total_adjustment,
     "Stok Akhir": row.closing_stock,
   }));
 }
@@ -48,13 +49,22 @@ export async function exportInventoryReportToPdf(report: InventoryReportPayload)
 
   autoTable(document, {
     startY: 80,
-    head: [["No", "Nama Produk", "Stok Awal", "Total Masuk", "Total Keluar", "Stok Akhir"]],
+    head: [[
+      "No",
+      "Nama Produk",
+      "Stok Awal",
+      "Total Masuk",
+      "Total Keluar",
+      "Penyesuaian",
+      "Stok Akhir",
+    ]],
     body: report.rows.map((row, index) => [
       index + 1,
       row.product_name,
       row.opening_stock,
       row.total_incoming,
       row.total_outgoing,
+      row.total_adjustment,
       row.closing_stock,
     ]),
     styles: {

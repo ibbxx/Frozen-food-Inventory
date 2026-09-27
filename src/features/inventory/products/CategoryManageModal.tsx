@@ -6,13 +6,14 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Modal } from "@/shared/ui/modal";
 
+import { invalidateAfterCategoryMutation } from "../shared/query-keys";
+
 import {
   createCategory,
   deleteCategory,
   updateCategory,
 } from "./categories-service";
 import { useCategoryRecords } from "./use-categories";
-import { invalidateAfterCategoryMutation } from "../shared/query-keys";
 
 import type { ProductCategoryRecord } from "../types/database";
 
@@ -23,8 +24,8 @@ type ToastState = { message: string; tone: "success" | "error" } | null;
 interface CategoryManageModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /** Nama-nama kategori yang sedang dipakai minimal satu produk — untuk proteksi hapus. */
-  usedCategoryNames: Set<string>;
+  /** Jumlah produk yang memakai tiap kategori (kunci = nama kategori). */
+  categoryUsage: Record<string, number>;
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
@@ -33,8 +34,7 @@ interface CategoryRowProps {
   category: ProductCategoryRecord;
   isDeleting: boolean;
   isEditing: boolean;
-  isFallback: boolean;
-  isInUse: boolean;
+  usageCount: number;
   onCancelDelete: () => void;
   onCancelEdit: () => void;
   onConfirmDelete: () => void;
@@ -47,8 +47,7 @@ function CategoryRow({
   category,
   isDeleting,
   isEditing,
-  isFallback,
-  isInUse,
+  usageCount,
   onCancelDelete,
   onCancelEdit,
   onConfirmDelete,
@@ -92,10 +91,11 @@ function CategoryRow({
         <div className="flex items-center justify-between gap-2">
           <span className="text-sm font-medium text-foreground">{category.name}</span>
         </div>
-        {isInUse ? (
+        {usageCount > 0 ? (
           <p className="flex items-center gap-1.5 text-xs text-amber-700">
             <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-            Kategori ini masih dipakai oleh beberapa produk. Hapus atau pindahkan produk-produk tersebut terlebih dahulu.
+            Kategori ini masih digunakan oleh {usageCount} produk. Pindahkan produk tersebut ke
+            kategori lain sebelum menghapus.
           </p>
         ) : (
           <p className="text-xs text-muted-foreground">
@@ -105,7 +105,7 @@ function CategoryRow({
         <div className="flex items-center gap-2">
           <Button
             className="h-7 px-3 text-xs"
-            disabled={isInUse}
+            disabled={usageCount > 0}
             onClick={onConfirmDelete}
             size="sm"
             type="button"
@@ -163,34 +163,35 @@ function CategoryRow({
 
   // ── Mode: tampilan normal ──
   return (
-    <li className="flex items-center gap-2 rounded-lg border border-border/60 bg-white px-3 py-2 hover:bg-slate-50/80 transition-colors">
-      <span className="flex-1 truncate text-sm text-foreground">{category.name}</span>
-      {isFallback ? (
-        <span className="text-[10px] text-muted-foreground/60 italic">memuat…</span>
-      ) : (
-        <div className="flex items-center gap-1 shrink-0">
-          <Button
-            aria-label={`Edit kategori ${category.name}`}
-            className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
-            onClick={handleStartEdit}
-            size="sm"
-            type="button"
-            variant="ghost"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            aria-label={`Hapus kategori ${category.name}`}
-            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-            onClick={onStartDelete}
-            size="sm"
-            type="button"
-            variant="ghost"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-      )}
+    <li className="flex items-center gap-3 rounded-lg border border-border/60 bg-white px-3 py-2 hover:bg-slate-50/80 transition-colors">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate text-sm font-medium text-foreground">{category.name}</span>
+        <span className="text-[11px] text-muted-foreground">
+          {usageCount > 0 ? `Digunakan oleh ${usageCount} produk` : "Belum digunakan"}
+        </span>
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        <Button
+          aria-label={`Ubah nama kategori ${category.name}`}
+          className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+          onClick={handleStartEdit}
+          size="sm"
+          type="button"
+          variant="ghost"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          aria-label={`Hapus kategori ${category.name}`}
+          className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+          onClick={onStartDelete}
+          size="sm"
+          type="button"
+          variant="ghost"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </div>
     </li>
   );
 }
@@ -200,10 +201,10 @@ function CategoryRow({
 export function CategoryManageModal({
   isOpen,
   onClose,
-  usedCategoryNames,
+  categoryUsage,
 }: CategoryManageModalProps) {
   const queryClient = useQueryClient();
-  const { data: categories, isLoading, isError, error, isFetching } = useCategoryRecords();
+  const { data: categories, isLoading, isError, error } = useCategoryRecords();
 
   const [newCategoryName, setNewCategoryName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -319,31 +320,27 @@ export function CategoryManageModal({
               </div>
             ) : (
               <ul className="flex flex-col gap-1" role="list">
-                {categories.map((cat) => {
-                  const isFallback = isFetching && cat.id.startsWith("fallback-");
-                  return (
-                    <CategoryRow
-                      key={cat.id}
-                      category={cat}
-                      isDeleting={deletingId === cat.id}
-                      isEditing={editingId === cat.id}
-                      isFallback={isFallback}
-                      isInUse={usedCategoryNames.has(cat.name)}
-                      onCancelDelete={() => setDeletingId(null)}
-                      onCancelEdit={() => setEditingId(null)}
-                      onConfirmDelete={() => deleteMutation.mutate(cat.id)}
-                      onSaveEdit={(name) => updateMutation.mutate({ id: cat.id, name })}
-                      onStartDelete={() => {
-                        setEditingId(null);
-                        setDeletingId(cat.id);
-                      }}
-                      onStartEdit={() => {
-                        setDeletingId(null);
-                        setEditingId(cat.id);
-                      }}
-                    />
-                  );
-                })}
+                {categories.map((cat) => (
+                  <CategoryRow
+                    key={cat.id}
+                    category={cat}
+                    isDeleting={deletingId === cat.id}
+                    isEditing={editingId === cat.id}
+                    usageCount={categoryUsage[cat.name] ?? 0}
+                    onCancelDelete={() => setDeletingId(null)}
+                    onCancelEdit={() => setEditingId(null)}
+                    onConfirmDelete={() => deleteMutation.mutate(cat.id)}
+                    onSaveEdit={(name) => updateMutation.mutate({ id: cat.id, name })}
+                    onStartDelete={() => {
+                      setEditingId(null);
+                      setDeletingId(cat.id);
+                    }}
+                    onStartEdit={() => {
+                      setDeletingId(null);
+                      setEditingId(cat.id);
+                    }}
+                  />
+                ))}
               </ul>
             )}
           </div>

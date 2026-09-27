@@ -2,7 +2,6 @@ import clsx from "clsx";
 import {
   Archive,
   ArrowDownLeft,
-  ArrowLeftRight,
   ArrowUpRight,
   ExternalLink,
   FileText,
@@ -30,11 +29,6 @@ const navigationGroups = [
         path: "/inventory",
         label: "Monitoring Stok",
         icon: Archive,
-      },
-      {
-        path: "/transactions",
-        label: "Transaksi Stok",
-        icon: ArrowLeftRight,
       },
       {
         path: "/audit-logs",

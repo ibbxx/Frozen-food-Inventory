@@ -1,4 +1,4 @@
-import { Package2, Pencil } from "lucide-react";
+import { Package2, Pencil, SlidersHorizontal } from "lucide-react";
 
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
@@ -39,11 +39,12 @@ function formatCurrency(value: number | null) {
 }
 
 interface ProductTableProps {
+  onAdjustStock: (product: Product) => void;
   onEdit: (product: Product) => void;
   products: Product[];
 }
 
-export function ProductTable({ onEdit, products }: ProductTableProps) {
+export function ProductTable({ onAdjustStock, onEdit, products }: ProductTableProps) {
   return (
     <Card className="border-border bg-white shadow-xs overflow-hidden">
       <CardHeader className="p-4 sm:p-6 border-b border-border bg-slate-50/50">
@@ -121,16 +122,28 @@ export function ProductTable({ onEdit, products }: ProductTableProps) {
                     </div>
                   </div>
 
-                  <Button
-                    className="h-8 px-3 text-xs"
-                    onClick={() => onEdit(product)}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                    Ubah
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      className="h-8 px-3 text-xs"
+                      onClick={() => onAdjustStock(product)}
+                      size="sm"
+                      type="button"
+                      variant="ghost"
+                    >
+                      <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />
+                      Opname
+                    </Button>
+                    <Button
+                      className="h-8 px-3 text-xs"
+                      onClick={() => onEdit(product)}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                      Ubah
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))
@@ -205,16 +218,28 @@ export function ProductTable({ onEdit, products }: ProductTableProps) {
                       {getStatus(product)}
                     </td>
                     <td className="py-3 px-6 text-right">
-                      <Button
-                        className="h-8 px-2.5 text-xs"
-                        onClick={() => onEdit(product)}
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                      >
-                        <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                        Edit
-                      </Button>
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          className="h-8 px-2.5 text-xs"
+                          onClick={() => onAdjustStock(product)}
+                          size="sm"
+                          type="button"
+                          variant="ghost"
+                        >
+                          <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />
+                          Sesuaikan Stok
+                        </Button>
+                        <Button
+                          className="h-8 px-2.5 text-xs"
+                          onClick={() => onEdit(product)}
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                        >
+                          <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                          Edit
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))

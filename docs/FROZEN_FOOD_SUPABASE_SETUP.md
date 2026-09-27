@@ -62,12 +62,16 @@ Use the provided RPC functions:
 - `process_stock_transaction(...)`
 - `record_incoming(...)`
 - `record_outgoing(...)`
+- `record_stock_adjustment(...)` — penyesuaian stok hasil stok opname; wajib disertai alasan
 
 These functions are designed to:
 
 - keep inventory quantities from going negative
 - produce movement ledger rows
 - update product stock and transaction history atomically
+
+Stock must only change through these RPC functions. Editing `products.current_stock`
+directly (from SQL or the client) bypasses the audit ledger and is not supported.
 
 ## 6. Current frontend scope
 

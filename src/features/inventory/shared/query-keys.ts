@@ -36,32 +36,43 @@ export async function invalidateAfterProductMutation(queryClient: QueryClient) {
     inventoryQueryKeys.inventory(),
     inventoryQueryKeys.dashboard(),
     inventoryQueryKeys.publicCatalog(),
+    inventoryQueryKeys.reports(),
   ]);
 }
 
 export async function invalidateAfterCategoryMutation(queryClient: QueryClient) {
+  // Perubahan kategori ikut memengaruhi daftar produk (rename mengubah
+  // products.category lewat ON UPDATE CASCADE) dan filter kategori di katalog publik.
   await invalidateMany(queryClient, [
     inventoryQueryKeys.categoryList(),
+    inventoryQueryKeys.productList(),
+    inventoryQueryKeys.publicCatalog(),
   ]);
 }
 
 export async function invalidateAfterIncomingMutation(queryClient: QueryClient) {
   await invalidateMany(queryClient, [
     inventoryQueryKeys.incoming(),
+    inventoryQueryKeys.stockLogs(),
+    inventoryQueryKeys.stockAudit(),
     inventoryQueryKeys.productList(),
     inventoryQueryKeys.inventory(),
     inventoryQueryKeys.dashboard(),
     inventoryQueryKeys.publicCatalog(),
+    inventoryQueryKeys.reports(),
   ]);
 }
 
 export async function invalidateAfterOutgoingMutation(queryClient: QueryClient) {
   await invalidateMany(queryClient, [
     inventoryQueryKeys.outgoing(),
+    inventoryQueryKeys.stockLogs(),
+    inventoryQueryKeys.stockAudit(),
     inventoryQueryKeys.productList(),
     inventoryQueryKeys.inventory(),
     inventoryQueryKeys.dashboard(),
     inventoryQueryKeys.publicCatalog(),
+    inventoryQueryKeys.reports(),
   ]);
 }
 
@@ -73,5 +84,18 @@ export async function invalidateAfterStockTransactionMutation(queryClient: Query
     inventoryQueryKeys.inventory(),
     inventoryQueryKeys.dashboard(),
     inventoryQueryKeys.publicCatalog(),
+    inventoryQueryKeys.reports(),
+  ]);
+}
+
+export async function invalidateAfterStockAdjustmentMutation(queryClient: QueryClient) {
+  await invalidateMany(queryClient, [
+    inventoryQueryKeys.stockLogs(),
+    inventoryQueryKeys.stockAudit(),
+    inventoryQueryKeys.productList(),
+    inventoryQueryKeys.inventory(),
+    inventoryQueryKeys.dashboard(),
+    inventoryQueryKeys.publicCatalog(),
+    inventoryQueryKeys.reports(),
   ]);
 }

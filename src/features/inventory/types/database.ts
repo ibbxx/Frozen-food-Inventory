@@ -15,6 +15,12 @@ export interface ProductCategoryRecord {
   created_at: string;
 }
 export type StockTransactionType = "incoming" | "outgoing";
+/**
+ * Jenis baris pada ledger stok (stock_logs).
+ * - `incoming` / `outgoing` berasal dari transaksi masuk/keluar.
+ * - `adjustment` berasal dari stok opname (penyesuaian manual dengan alasan).
+ */
+export type StockLogType = StockTransactionType | "adjustment";
 export type PublicCatalogStockStatus = "available" | "limited" | "out";
 
 export interface UserProfile {
@@ -87,7 +93,7 @@ export interface StockLog {
   old_stock: number;
   change_amount: number;
   new_stock: number;
-  type: StockTransactionType;
+  type: StockLogType;
   notes: string | null;
   created_by: UUID;
   created_at: string;
@@ -100,9 +106,16 @@ export interface StockLogHistoryItem {
   old_stock: number;
   change_amount: number;
   new_stock: number;
-  type: StockTransactionType;
+  type: StockLogType;
   notes: string | null;
   created_at: string;
+}
+
+/** Input stok opname: menetapkan stok fisik hasil hitung ulang. */
+export interface CreateStockAdjustmentInput {
+  new_stock: number;
+  notes: string;
+  product_id: UUID;
 }
 
 export interface CreateStockTransactionInput {
@@ -202,6 +215,7 @@ export interface InventoryReportRow {
   opening_stock: number;
   total_incoming: number;
   total_outgoing: number;
+  total_adjustment: number;
   closing_stock: number;
 }
 
@@ -396,7 +410,7 @@ export interface Database {
           old_stock: number;
           change_amount: number;
           new_stock: number;
-          type: StockTransactionType;
+          type: StockLogType;
           notes?: string | null;
           created_by?: UUID;
           created_at?: string;
@@ -407,7 +421,7 @@ export interface Database {
           old_stock?: number;
           change_amount?: number;
           new_stock?: number;
-          type?: StockTransactionType;
+          type?: StockLogType;
           notes?: string | null;
           created_by?: UUID;
           created_at?: string;
@@ -478,6 +492,14 @@ export interface Database {
           p_description: string | null;
         };
         Returns: OutgoingItem;
+      };
+      record_stock_adjustment: {
+        Args: {
+          p_product_id: UUID;
+          p_new_stock: number;
+          p_notes: string;
+        };
+        Returns: StockLog;
       };
     };
     Enums: {

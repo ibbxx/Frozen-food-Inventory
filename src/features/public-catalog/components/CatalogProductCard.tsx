@@ -1,5 +1,6 @@
 import { MessageCircleMore, Package2 } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 import type { PublicCatalogProduct } from "@/features/inventory/types/database";
 import { Button } from "@/shared/ui/button";
@@ -41,8 +42,11 @@ export function CatalogProductCard({
   return (
     <Card className="group flex flex-col justify-between overflow-hidden border border-border bg-white shadow-2xs transition-all duration-150 hover:border-primary/40 hover:shadow-sm">
       <div>
-        {/* Product Image Box */}
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 border-b border-border">
+        {/* Product Image Box linked to Detail */}
+        <Link
+          className="relative block aspect-[4/3] w-full overflow-hidden bg-slate-100 border-b border-border focus-visible:outline-hidden"
+          to={`/catalog/${product.id}`}
+        >
           {product.image_url && !imageError ? (
             <img
               alt={product.product_name}
@@ -59,12 +63,12 @@ export function CatalogProductCard({
           )}
 
           {/* Category Chip Floating on top-left */}
-          <div className="absolute top-2.5 left-2.5">
+          <div className="absolute top-2.5 left-2.5 pointer-events-none">
             <span className="inline-flex items-center rounded-md border border-white/80 bg-white/95 px-2 py-0.5 font-mono text-[11px] font-semibold text-slate-800 shadow-2xs backdrop-blur-xs">
               {product.category}
             </span>
           </div>
-        </div>
+        </Link>
 
         <CardHeader className="space-y-2 p-4 pb-2">
           <div className="flex items-center justify-between gap-2">
@@ -74,7 +78,12 @@ export function CatalogProductCard({
             </span>
           </div>
           <CardTitle className="font-display text-base sm:text-lg font-bold text-foreground leading-snug">
-            {product.product_name}
+            <Link
+              className="hover:text-primary transition-colors block focus-visible:outline-hidden"
+              to={`/catalog/${product.id}`}
+            >
+              {product.product_name}
+            </Link>
           </CardTitle>
         </CardHeader>
 
@@ -85,7 +94,7 @@ export function CatalogProductCard({
         </CardContent>
       </div>
 
-      <CardFooter className="p-4 pt-2">
+      <CardFooter className="p-4 pt-2 flex flex-col gap-2">
         <Button
           asChild={Boolean(whatsappLink)}
           className="w-full h-11 text-xs sm:text-sm font-semibold gap-2 min-h-[44px]"
@@ -105,7 +114,18 @@ export function CatalogProductCard({
             </span>
           )}
         </Button>
+
+        <Button
+          asChild
+          className="w-full h-8 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-slate-50 transition-colors"
+          variant="ghost"
+        >
+          <Link to={`/catalog/${product.id}`}>
+            Lihat Spesifikasi & Detail &rarr;
+          </Link>
+        </Button>
       </CardFooter>
     </Card>
   );
 }
+

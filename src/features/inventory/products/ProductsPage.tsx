@@ -1,8 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
+import { useAuth } from "@/features/auth";
+
 import { PageErrorState } from "../shared/PageErrorState";
-import { invalidateAfterProductMutation } from "../shared/query-keys";
+import {
+  invalidateAfterProductMutation,
+  invalidateAfterStockAdjustmentMutation,
+} from "../shared/query-keys";
 import { ToastMessage } from "../shared/ToastMessage";
 
 import { CategoryManageModal } from "./CategoryManageModal";
@@ -12,9 +17,14 @@ import { ProductTable } from "./components/ProductTable";
 import { ProductFormModal } from "./ProductFormModal";
 import {
   createProductWithImage,
+  saveStockAdjustment,
   updateProductWithImage,
   type ProductFormValues,
 } from "./products-service";
+import {
+  StockAdjustmentModal,
+  type StockAdjustmentFormValues,
+} from "./StockAdjustmentModal";
 import { useProducts } from "./use-products";
 
 import type { Product } from "../types/database";
@@ -29,18 +39,26 @@ type ToastState =
 
 export function ProductsPage() {
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === "admin";
   const productsQuery = useProducts();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [adjustingProduct, setAdjustingProduct] = useState<Product | null>(null);
   const [toastState, setToastState] = useState<ToastState>(null);
 
   const products = useMemo(() => productsQuery.data ?? [], [productsQuery.data]);
 
-  const usedCategoryNames = useMemo(
-    () => new Set(products.map((p: Product) => p.category)),
-    [products],
-  );
+  // Jumlah produk per kategori — dipakai untuk menampilkan status pemakaian
+  // kategori di "Kelola Kategori" dan proteksi hapus di sisi antarmuka.
+  const categoryUsage = useMemo(() => {
+    const usage: Record<string, number> = {};
+    products.forEach((product: Product) => {
+      usage[product.category] = (usage[product.category] ?? 0) + 1;
+    });
+    return usage;
+  }, [products]);
 
   const summary = useMemo(
     () => ({
@@ -91,7 +109,52 @@ export function ProductsPage() {
     },
   });
 
+  const adjustMutation = useMutation({
+    mutationFn: ({
+      productId,
+      values,
+    }: {
+      productId: string;
+      values: StockAdjustmentFormValues;
+    }) => saveStockAdjustment(productId, values),
+    onSuccess: async () => {
+      setToastState({
+        message: "Penyesuaian stok berhasil dicatat pada audit stok.",
+        tone: "success",
+      });
+      await invalidateAfterStockAdjustmentMutation(queryClient);
+      setAdjustingProduct(null);
+    },
+    onError: (error) => {
+      setToastState({
+        message:
+          error instanceof Error ? error.message : "Gagal menyesuaikan stok produk.",
+        tone: "error",
+      });
+    },
+  });
+
   const isSubmitting = createMutation.isPending || updateMutation.isPending;
+
+  const handleAdjustStock = (product: Product) => {
+    setAdjustingProduct(product);
+  };
+
+  const handleCloseAdjustment = () => {
+    if (adjustMutation.isPending) {
+      return;
+    }
+
+    setAdjustingProduct(null);
+  };
+
+  const handleAdjustSubmit = (values: StockAdjustmentFormValues) => {
+    if (!adjustingProduct) {
+      return;
+    }
+
+    adjustMutation.mutate({ productId: adjustingProduct.id, values });
+  };
 
   const handleCreate = () => {
     setEditingProduct(null);
@@ -149,10 +212,22 @@ export function ProductsPage() {
 
       <ProductHeroSection
         onCreate={handleCreate}
-        onManageCategories={() => setIsCategoryModalOpen(true)}
+        onManageCategories={isAdmin ? () => setIsCategoryModalOpen(true) : undefined}
       />
       <ProductSummarySection summary={summary} />
-      <ProductTable onEdit={handleEdit} products={products} />
+      <ProductTable
+        onAdjustStock={handleAdjustStock}
+        onEdit={handleEdit}
+        products={products}
+      />
+
+      <StockAdjustmentModal
+        isOpen={Boolean(adjustingProduct)}
+        isSubmitting={adjustMutation.isPending}
+        onClose={handleCloseAdjustment}
+        onSubmit={handleAdjustSubmit}
+        product={adjustingProduct}
+      />
 
       <ProductFormModal
         initialProduct={editingProduct}
@@ -163,9 +238,9 @@ export function ProductsPage() {
       />
 
       <CategoryManageModal
+        categoryUsage={categoryUsage}
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
-        usedCategoryNames={usedCategoryNames}
       />
     </div>
   );

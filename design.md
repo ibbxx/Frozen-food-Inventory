@@ -97,7 +97,7 @@ Semua komponen, halaman, dan interaksi wajib tunduk pada aturan di bawah ini.
 2. **Drawer Navigasi Mobile**:
    - Meluncur mulus dari sisi kiri dengan overlay transparan berbobot.
    - Menu terorganisasi rapi:
-     - **Operasional**: Dasbor, Monitoring Stok, Transaksi Stok, Audit Stok.
+     - **Operasional**: Dasbor, Monitoring Stok, Audit Stok.
      - **Alur Barang**: Barang Masuk, Barang Keluar.
      - **Manajemen**: Master Produk, Laporan, Tim.
    - Tombol otomatis menutup drawer begitu link dipilih.

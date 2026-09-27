@@ -1,3 +1,25 @@
+import {
+  ArrowDownAZ,
+  ArrowUpAZ,
+  ArrowUpDown,
+  Circle,
+  ListFilter,
+  RefreshCw,
+  Search,
+  Tag,
+  X,
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { nanoid } from "nanoid";
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
@@ -19,30 +41,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 import type { PublicCatalogStockStatus } from "@/features/inventory/types/database";
-import { productCategoryOptions } from "@/shared/lib/product-categories";
+import { cn } from "@/lib/utils";
 import { Button } from "@/shared/ui/button";
-import {
-  ArrowDownAZ,
-  ArrowUpAZ,
-  ArrowUpDown,
-  Circle,
-  ListFilter,
-  RefreshCw,
-  Search,
-  Tag,
-  X,
-} from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import { nanoid } from "nanoid";
-import {
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
 
 // ─── Public exported types (consumed by PublicCatalogPage) ───────────────────
 
@@ -80,6 +81,8 @@ interface ActiveFilter {
 // ─── Component props ─────────────────────────────────────────────────────────
 
 interface CatalogFilterBarProps {
+  /** Kategori yang benar-benar tersedia di katalog (berasal dari data, bukan daftar tetap). */
+  availableCategories: string[];
   filters: CatalogFilters;
   isFetching: boolean;
   onFiltersChange: (filters: CatalogFilters) => void;
@@ -99,13 +102,25 @@ const CATEGORY_GROUPS: { label: string; categories: string[] }[] = [
 ];
 
 const ALL_GROUPED = CATEGORY_GROUPS.flatMap((g) => g.categories);
-const UNGROUPED   = (productCategoryOptions as readonly string[]).filter(
-  (c) => !ALL_GROUPED.includes(c),
-);
-const FINAL_CATEGORY_GROUPS =
-  UNGROUPED.length > 0
-    ? [...CATEGORY_GROUPS, { label: "Lainnya", categories: UNGROUPED }]
+
+type CategoryGroup = { label: string; categories: string[] };
+
+/**
+ * Grup kategori untuk filter katalog.
+ *
+ * Grup bawaan tetap dipertahankan sebagai label visual, sedangkan kategori yang
+ * belum terdaftar di grup (mis. kategori baru dari master kategori) otomatis
+ * masuk ke grup "Lainnya" — tanpa perlu mengubah source code.
+ */
+function buildCategoryGroups(availableCategories: string[]): CategoryGroup[] {
+  const ungrouped = [...new Set(availableCategories)]
+    .filter((category) => !ALL_GROUPED.includes(category))
+    .sort((a, b) => a.localeCompare(b, "id"));
+
+  return ungrouped.length > 0
+    ? [...CATEGORY_GROUPS, { label: "Lainnya", categories: ungrouped }]
     : CATEGORY_GROUPS;
+}
 
 // ─── Stock & sort option maps ─────────────────────────────────────────────────
 
@@ -236,9 +251,11 @@ function FilterOperatorDropdown({
 // ─── Category value combobox (multi-select, grouped) ─────────────────────────
 
 function FilterValueCategoryCombobox({
+  categoryGroups,
   filterValues,
   setFilterValues,
 }: {
+  categoryGroups: CategoryGroup[];
   filterValues: string[];
   setFilterValues: (v: string[]) => void;
 }) {
@@ -318,7 +335,7 @@ function FilterValueCategoryCombobox({
               )}
 
               {/* Grouped non-selected options */}
-              {FINAL_CATEGORY_GROUPS.map((group, gi) => {
+              {categoryGroups.map((group, gi) => {
                 const opts = group.categories.filter(
                   (c) =>
                     !filterValues.includes(c) &&
@@ -460,9 +477,11 @@ function FilterValueSortCombobox({
 
 function ActiveFilterPills({
   activeFilters,
+  categoryGroups,
   setActiveFilters,
 }: {
   activeFilters: ActiveFilter[];
+  categoryGroups: CategoryGroup[];
   setActiveFilters: Dispatch<SetStateAction<ActiveFilter[]>>;
 }) {
   const visible = activeFilters.filter((f) => f.value.length > 0);
@@ -499,6 +518,7 @@ function ActiveFilterPills({
           {/* Value combobox */}
           {filter.type === CatalogFilterType.KATEGORI ? (
             <FilterValueCategoryCombobox
+              categoryGroups={categoryGroups}
               filterValues={filter.value}
               setFilterValues={(vals) => updateFilter(filter.id, "value", vals)}
             />
@@ -536,9 +556,11 @@ function ActiveFilterPills({
 
 function AddFilterPopover({
   activeFilters,
+  categoryGroups,
   onAdd,
 }: {
   activeFilters: ActiveFilter[];
+  categoryGroups: CategoryGroup[];
   onAdd: (f: ActiveFilter) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -593,7 +615,7 @@ function AddFilterPopover({
                 // Step 2 — pick initial value for the chosen type
                 <CommandGroup>
                   {selectedType === CatalogFilterType.KATEGORI &&
-                    FINAL_CATEGORY_GROUPS.flatMap((g) => g.categories)
+                    categoryGroups.flatMap((g) => g.categories)
                       .filter((c) =>
                         !commandInput || c.toLowerCase().includes(commandInput.toLowerCase()),
                       )
@@ -700,6 +722,7 @@ const DEFAULT_CATALOG_FILTERS: CatalogFilters = {
 };
 
 export function CatalogFilterBar({
+  availableCategories,
   filters,
   isFetching,
   onFiltersChange,
@@ -708,6 +731,11 @@ export function CatalogFilterBar({
   totalAll,
 }: CatalogFilterBarProps) {
   const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([]);
+
+  const categoryGroups = useMemo(
+    () => buildCategoryGroups(availableCategories),
+    [availableCategories],
+  );
 
   // Sync pill state → CatalogFilters whenever pills change
   useEffect(() => {
@@ -789,6 +817,7 @@ export function CatalogFilterBar({
         {/* Active pills */}
         <ActiveFilterPills
           activeFilters={activeFilters}
+          categoryGroups={categoryGroups}
           setActiveFilters={setActiveFilters}
         />
 
@@ -808,6 +837,7 @@ export function CatalogFilterBar({
         {/* Add filter */}
         <AddFilterPopover
           activeFilters={activeFilters}
+          categoryGroups={categoryGroups}
           onAdd={(f) => setActiveFilters((prev) => [...prev, f])}
         />
 

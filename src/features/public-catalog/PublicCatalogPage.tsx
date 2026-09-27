@@ -1,15 +1,15 @@
 import { Package2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 
-import { CatalogProductCard } from "./components/CatalogProductCard";
 import {
   CatalogFilterBar,
   type CatalogFilters,
 } from "./components/CatalogFilterBar";
+import { CatalogProductCard } from "./components/CatalogProductCard";
 import { createWhatsappLink } from "./public-catalog-service";
 import { usePublicCatalog } from "./use-public-catalog";
 
@@ -69,6 +69,13 @@ export function PublicCatalogPage() {
 
   const totalAll = catalogQuery.data?.length ?? 0;
 
+  // Kategori untuk filter diambil dari data katalog itu sendiri, sehingga
+  // kategori baru yang dibuat di master kategori langsung ikut tampil.
+  const availableCategories = useMemo(
+    () => [...new Set((catalogQuery.data ?? []).map((product) => product.category))],
+    [catalogQuery.data],
+  );
+
   return (
     <div className="min-h-screen bg-[hsl(var(--background))] text-foreground">
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col px-3.5 py-4 sm:px-6 sm:py-8 lg:px-8">
@@ -105,6 +112,7 @@ export function PublicCatalogPage() {
 
         {/* ── Structured Filter Bar ── */}
         <CatalogFilterBar
+          availableCategories={availableCategories}
           filters={filters}
           isFetching={catalogQuery.isFetching}
           onFiltersChange={setFilters}

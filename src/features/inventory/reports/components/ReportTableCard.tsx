@@ -7,6 +7,7 @@ import {
 } from "@/shared/ui/card";
 
 import { EmptyTableRow } from "../../shared/EmptyTableRow";
+import { formatStockChange } from "../../shared/stock-log-presentation";
 
 import type { InventoryReportPayload } from "../../types/database";
 
@@ -48,6 +49,7 @@ export function ReportTableCard({
                   <th className="pb-3 pr-4 font-medium">Stok Awal</th>
                   <th className="pb-3 pr-4 font-medium">Total Masuk</th>
                   <th className="pb-3 pr-4 font-medium">Total Keluar</th>
+                  <th className="pb-3 pr-4 font-medium">Penyesuaian</th>
                   <th className="pb-3 font-medium">Stok Akhir</th>
                 </tr>
               </thead>
@@ -60,12 +62,15 @@ export function ReportTableCard({
                       <td className="py-4 pr-4">{row.opening_stock}</td>
                       <td className="py-4 pr-4 text-emerald-700">{row.total_incoming}</td>
                       <td className="py-4 pr-4 text-sky-700">{row.total_outgoing}</td>
+                      <td className="py-4 pr-4 font-mono text-slate-700">
+                        {formatStockChange(row.total_adjustment)}
+                      </td>
                       <td className="py-4 font-semibold text-slate-900">{row.closing_stock}</td>
                     </tr>
                   ))
                 ) : (
                   <EmptyTableRow
-                    colSpan={6}
+                    colSpan={7}
                     message="Tidak ada data pada rentang tanggal ini."
                   />
                 )}

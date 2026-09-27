@@ -4,9 +4,11 @@ import {
   fetchIncomingItemsFromDatabase,
   fetchProductsFromDatabase,
   recordOutgoingInDatabase,
+  recordStockAdjustmentInDatabase,
 } from "../lib/database-repository";
 
 import {
+  adjustProductStock,
   listIncomingItems,
   listProducts,
   recordOutgoingItem,
@@ -19,6 +21,7 @@ vi.mock("../lib/database-repository", () => ({
   insertProductIntoDatabase: vi.fn(),
   recordIncomingInDatabase: vi.fn(),
   recordOutgoingInDatabase: vi.fn(),
+  recordStockAdjustmentInDatabase: vi.fn(),
   updateProductInDatabase: vi.fn(),
 }));
 
@@ -105,6 +108,40 @@ describe("inventory repository", () => {
       id: "outgoing-1",
       quantity: 2,
       created_by: "user-2",
+    });
+  });
+
+  it("writes stock adjustments through the atomic RPC path", async () => {
+    vi.mocked(recordStockAdjustmentInDatabase).mockResolvedValue({
+      id: "log-adjustment-1",
+      product_id: "product-1",
+      source_transaction_id: null,
+      old_stock: 24,
+      change_amount: -4,
+      new_stock: 20,
+      type: "adjustment",
+      notes: "Stok opname: 4 pcs rusak",
+      created_by: "user-1",
+      created_at: "2026-04-19T10:00:00.000Z",
+    });
+
+    await expect(
+      adjustProductStock({
+        new_stock: 20,
+        notes: "Stok opname: 4 pcs rusak",
+        product_id: "product-1",
+      }),
+    ).resolves.toMatchObject({
+      id: "log-adjustment-1",
+      change_amount: -4,
+      new_stock: 20,
+      type: "adjustment",
+    });
+
+    expect(recordStockAdjustmentInDatabase).toHaveBeenCalledWith({
+      new_stock: 20,
+      notes: "Stok opname: 4 pcs rusak",
+      product_id: "product-1",
     });
   });
 });

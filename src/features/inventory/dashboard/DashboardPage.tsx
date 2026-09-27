@@ -20,7 +20,6 @@ import {
 
 import { useAuth } from "@/features/auth";
 import { Badge } from "@/shared/ui/badge";
-import { Button } from "@/shared/ui/button";
 import {
   Card,
   CardContent,

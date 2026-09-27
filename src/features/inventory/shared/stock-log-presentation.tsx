@@ -1,23 +1,26 @@
 import { Badge } from "@/shared/ui/badge";
 
-import type { StockTransactionType } from "../types/database";
+import type { StockLogType } from "../types/database";
 
 export function formatStockChange(value: number): string {
   return `${value > 0 ? "+" : ""}${value}`;
 }
 
-export function stockTransactionLabel(type: StockTransactionType): string {
-  return type === "incoming" ? "Masuk" : "Keluar";
+export function stockLogLabel(type: StockLogType): string {
+  if (type === "incoming") {
+    return "Masuk";
+  }
+
+  if (type === "outgoing") {
+    return "Keluar";
+  }
+
+  return "Penyesuaian";
 }
 
-export function StockTransactionBadge({
-  type,
-}: {
-  type: StockTransactionType;
-}) {
-  return (
-    <Badge variant={type === "incoming" ? "success" : "warning"}>
-      {stockTransactionLabel(type)}
-    </Badge>
-  );
+export function StockTransactionBadge({ type }: { type: StockLogType }) {
+  const variant =
+    type === "incoming" ? "success" : type === "outgoing" ? "warning" : "info";
+
+  return <Badge variant={variant}>{stockLogLabel(type)}</Badge>;
 }

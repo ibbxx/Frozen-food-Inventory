@@ -15,6 +15,11 @@ const PublicCatalogPage = lazy(() =>
     default: module.PublicCatalogPage,
   })),
 );
+const PublicProductDetailPage = lazy(() =>
+  import("@/features/public-catalog").then((module) => ({
+    default: module.PublicProductDetailPage,
+  })),
+);
 
 function RouteLoader({ children }) {
   return <Suspense fallback={<div className="page-loader">Memuat modul...</div>}>{children}</Suspense>;
@@ -66,6 +71,15 @@ export const router = createBrowserRouter([
       </RouteLoader>
     ),
   },
+  {
+    path: "/catalog/:id",
+    element: (
+      <RouteLoader>
+        <PublicProductDetailPage />
+      </RouteLoader>
+    ),
+  },
+
   {
     path: "/",
     element: (

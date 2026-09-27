@@ -96,7 +96,6 @@ export async function updateProductInDatabase(
   productId: string,
   values: {
     category: Product["category"];
-    current_stock: number;
     image_url: string;
     is_public: boolean;
     min_stock: number;
@@ -107,6 +106,9 @@ export async function updateProductInDatabase(
   const supabase = getSupabaseClient();
 
   try {
+    // Sengaja TIDAK menyertakan current_stock: stok hanya boleh berubah lewat
+    // transaksi masuk/keluar atau penyesuaian stok (record_stock_adjustment)
+    // agar selalu ada baris audit di stock_logs.
     const { data, error } = await supabase
       .from("products")
       .update({
@@ -115,7 +117,6 @@ export async function updateProductInDatabase(
         public_price: values.public_price,
         image_url: values.image_url || null,
         is_public: values.is_public,
-        current_stock: values.current_stock,
         min_stock: values.min_stock,
       } as never)
       .eq("id", productId)
@@ -325,6 +326,30 @@ export async function recordOutgoingInDatabase(
     return data as OutgoingItem;
   } catch (error) {
     throw createDatabaseError("mencatat barang keluar", error);
+  }
+}
+
+export async function recordStockAdjustmentInDatabase(input: {
+  new_stock: number;
+  notes: string;
+  product_id: string;
+}): Promise<StockLog> {
+  const supabase = getSupabaseClient();
+
+  try {
+    const { data, error } = await supabase.rpc("record_stock_adjustment", {
+      p_product_id: input.product_id,
+      p_new_stock: input.new_stock,
+      p_notes: input.notes,
+    } as never);
+
+    if (error) {
+      throw error;
+    }
+
+    return data as StockLog;
+  } catch (error) {
+    throw createDatabaseError("menyesuaikan stok", error);
   }
 }
 

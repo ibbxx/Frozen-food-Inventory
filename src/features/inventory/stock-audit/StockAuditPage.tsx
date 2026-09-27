@@ -1,8 +1,7 @@
-import { Download, ShieldCheck } from "lucide-react";
+import { Download } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useAuth } from "@/features/auth";
-import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 
 import { PageErrorState } from "../shared/PageErrorState";

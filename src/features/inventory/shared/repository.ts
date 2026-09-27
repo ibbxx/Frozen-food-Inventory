@@ -11,6 +11,7 @@ import {
   processStockTransactionInDatabase,
   recordIncomingInDatabase,
   recordOutgoingInDatabase,
+  recordStockAdjustmentInDatabase,
   type DatabaseListOptions,
   updateCategoryInDatabase,
   updateProductInDatabase,
@@ -19,6 +20,7 @@ import {
 import type {
   CreateIncomingItemInput,
   CreateOutgoingItemInput,
+  CreateStockAdjustmentInput,
   CreateStockTransactionInput,
   IncomingItem,
   OutgoingItem,
@@ -28,9 +30,20 @@ import type {
   StockLog,
 } from "../types/database";
 
-interface ProductPayload {
+/** Payload produk baru — boleh membawa stok awal (saldo awal produk). */
+interface CreateProductPayload {
   category: Product["category"];
   current_stock: number;
+  image_url: string;
+  is_public: boolean;
+  min_stock: number;
+  product_name: string;
+  public_price: number | null;
+}
+
+/** Payload ubah produk — tanpa stok: stok hanya berubah lewat jalur beraudit. */
+interface UpdateProductPayload {
+  category: Product["category"];
   image_url: string;
   is_public: boolean;
   min_stock: number;
@@ -67,13 +80,13 @@ export async function listProducts(): Promise<Product[]> {
   return fetchProductsFromDatabase();
 }
 
-export async function createProduct(values: ProductPayload): Promise<Product> {
+export async function createProduct(values: CreateProductPayload): Promise<Product> {
   return insertProductIntoDatabase(values);
 }
 
 export async function updateProduct(
   productId: string,
-  values: ProductPayload,
+  values: UpdateProductPayload,
 ): Promise<Product> {
   return updateProductInDatabase(productId, values);
 }
@@ -114,4 +127,10 @@ export async function recordOutgoingItem(
   input: CreateOutgoingItemInput,
 ): Promise<OutgoingItem> {
   return recordOutgoingInDatabase(input);
+}
+
+export async function adjustProductStock(
+  input: CreateStockAdjustmentInput,
+): Promise<StockLog> {
+  return recordStockAdjustmentInDatabase(input);
 }

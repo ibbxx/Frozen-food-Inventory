@@ -1,6 +1,5 @@
 import {
   Archive,
-  ArrowLeftRight,
   ArrowDownLeft,
   ArrowUpRight,
   ShieldCheck,
@@ -45,17 +44,6 @@ export const appRoutes = [
     title: "Monitoring Stok",
     icon: Archive,
     component: lazyPage(() => import("@/features/inventory/inventory"), "InventoryPage"),
-  },
-  {
-    path: "transactions",
-    absolutePath: "/transactions",
-    label: "Transaksi",
-    title: "Transaksi Stok",
-    icon: ArrowLeftRight,
-    component: lazyPage(
-      () => import("@/features/inventory/transactions"),
-      "StockTransactionsPage",
-    ),
   },
   {
     path: "audit-logs",

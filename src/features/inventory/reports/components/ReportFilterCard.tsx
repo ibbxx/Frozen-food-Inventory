@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
-import { Input } from "@/shared/ui/input";
 
 import { MetricCard } from "../../shared/MetricCard";
 

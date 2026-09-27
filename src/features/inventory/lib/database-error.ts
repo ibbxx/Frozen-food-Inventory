@@ -29,6 +29,18 @@ function extractDatabaseDetail(error: unknown): string {
       return "Stok tidak mencukupi untuk memproses transaksi keluar.";
     }
 
+    if (normalizedMessage.includes("new stock must not be negative")) {
+      return "Stok baru tidak boleh bernilai negatif.";
+    }
+
+    if (normalizedMessage.includes("adjustment reason is required")) {
+      return "Alasan penyesuaian stok wajib diisi (minimal 3 karakter).";
+    }
+
+    if (normalizedMessage.includes("no stock change")) {
+      return "Stok baru sama dengan stok tercatat, jadi tidak ada perubahan untuk dicatat.";
+    }
+
     if (normalizedMessage.includes("product not found")) {
       return "Produk yang dipilih tidak ditemukan di database.";
     }
@@ -42,6 +54,19 @@ function extractDatabaseDetail(error: unknown): string {
 
     if (normalizedMessage.includes("duplicate key")) {
       return "Data yang sama sudah ada. Periksa kembali input sebelum menyimpan.";
+    }
+
+    // Kategori masih dipakai produk (foreign key ON DELETE RESTRICT).
+    if (
+      error.code === "23503" &&
+      (normalizedMessage.includes("product") || normalizedMessage.includes("category"))
+    ) {
+      return "Kategori ini masih digunakan oleh produk dan tidak dapat dihapus.";
+    }
+
+    // Kategori tidak ada di master kategori (foreign key products.category).
+    if (error.code === "23503" || error.code === "23514") {
+      return "Kategori tidak valid. Silakan pilih kategori yang tersedia.";
     }
 
     if (

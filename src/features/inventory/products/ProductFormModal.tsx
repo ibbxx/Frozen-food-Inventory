@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import {
   AlertCircle,
   ImagePlus,
@@ -17,8 +16,9 @@ import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Modal } from "@/shared/ui/modal";
 
-import type { ProductFormValues } from "./products-service";
 import { useCategories } from "./use-categories";
+
+import type { ProductFormValues } from "./products-service";
 import type { Product } from "../types/database";
 
 const productFormSchema = z.object({
@@ -56,7 +56,19 @@ export function ProductFormModal({
   onSubmit,
 }: ProductFormModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { data: categoryNames = [] } = useCategories();
+  const {
+    data: categoryNames = [],
+    isError: isCategoriesError,
+    isLoading: isCategoriesLoading,
+  } = useCategories();
+
+  // Kategori produk yang sedang diedit tetap bisa ditampilkan walau namanya
+  // belum/tidak lagi ada di master, supaya produk lama tidak rusak saat disimpan.
+  const currentCategory = initialProduct?.category ?? "";
+  const categoryOptions =
+    currentCategory && !categoryNames.includes(currentCategory)
+      ? [currentCategory, ...categoryNames]
+      : categoryNames;
 
   // States untuk pengelolaan gambar
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -95,7 +107,7 @@ export function ProductFormModal({
     const currentImg = initialProduct?.image_url ?? "";
     reset({
       product_name: initialProduct?.product_name ?? "",
-      category: initialProduct?.category ?? categoryNames[0] ?? "Daging",
+      category: initialProduct?.category ?? "",
       public_price: initialProduct?.public_price ?? null,
       image_url: currentImg,
       is_public: initialProduct?.is_public ?? true,
@@ -205,10 +217,18 @@ export function ProductFormModal({
           <div className="grid gap-2">
             <label className="text-sm font-medium text-slate-700">Kategori</label>
             <select
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={isCategoriesLoading || !categoryOptions.length}
               {...register("category")}
             >
-              {categoryNames.map((category) => (
+              <option value="">
+                {isCategoriesLoading
+                  ? "Memuat kategori…"
+                  : categoryOptions.length
+                    ? "Pilih kategori"
+                    : "Belum ada kategori"}
+              </option>
+              {categoryOptions.map((category) => (
                 <option key={category} value={category}>
                   {category}
                 </option>
@@ -216,6 +236,17 @@ export function ProductFormModal({
             </select>
             {errors.category ? (
               <span className="text-xs text-destructive">{errors.category.message}</span>
+            ) : null}
+            {isCategoriesError ? (
+              <span className="text-xs text-destructive">
+                Daftar kategori gagal dimuat. Tutup form ini lalu muat ulang halaman.
+              </span>
+            ) : null}
+            {!isCategoriesLoading && !isCategoriesError && !categoryOptions.length ? (
+              <span className="text-xs text-amber-700">
+                Belum ada kategori tersimpan. Tambahkan kategori lebih dulu lewat tombol
+                &ldquo;Kelola Kategori&rdquo; di halaman Master Produk.
+              </span>
             ) : null}
           </div>
 
@@ -425,13 +456,37 @@ export function ProductFormModal({
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium text-slate-700">Stok Saat Ini</label>
-            <Input min="0" type="number" {...register("current_stock")} />
-            {errors.current_stock ? (
-              <span className="text-xs text-destructive">{errors.current_stock.message}</span>
-            ) : null}
-          </div>
+          {initialProduct ? (
+            /* Mode edit: stok tidak diubah dari sini agar setiap perubahan stok
+               selalu punya peristiwa dan jejak audit di stock_logs. */
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-slate-700">Stok Saat Ini</label>
+              <div className="flex h-10 items-center justify-between rounded-md border border-border bg-slate-50 px-3">
+                <span className="font-mono text-sm font-semibold text-foreground">
+                  {initialProduct.current_stock}
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  Terkunci
+                </span>
+              </div>
+              <span className="text-[11px] leading-relaxed text-muted-foreground">
+                Stok hanya berubah lewat Barang Masuk, Barang Keluar, atau tombol
+                <strong> Sesuaikan Stok </strong>
+                (stok opname) di daftar produk — semuanya tercatat pada audit stok.
+              </span>
+            </div>
+          ) : (
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-slate-700">Stok Awal</label>
+              <Input min="0" type="number" {...register("current_stock")} />
+              {errors.current_stock ? (
+                <span className="text-xs text-destructive">{errors.current_stock.message}</span>
+              ) : null}
+              <span className="text-[11px] text-muted-foreground">
+                Saldo awal saat produk dibuat. Perubahan berikutnya dicatat sebagai audit.
+              </span>
+            </div>
+          )}
 
           <div className="grid gap-2">
             <label className="text-sm font-medium text-slate-700">Stok Minimum</label>
@@ -450,10 +505,12 @@ export function ProductFormModal({
         <div className="flex justify-end gap-3 border-t pt-4">
           <Button onClick={onClose} type="button" variant="outline">
             Batal
-          </Button>
-          <Button disabled={isSubmitting || isCompressing} type="submit">
-            {isSubmitting ? "Menyimpan..." : "Simpan Produk"}
-          </Button>
+          </Button>            <Button
+              disabled={isSubmitting || isCompressing || !categoryOptions.length}
+              type="submit"
+            >
+              {isSubmitting ? "Menyimpan..." : "Simpan Produk"}
+            </Button>
         </div>
       </form>
     </Modal>

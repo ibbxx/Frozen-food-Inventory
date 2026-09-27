@@ -3,12 +3,13 @@ import {
   uploadProductImage,
 } from "../lib/storage-service";
 import {
+  adjustProductStock,
   createProduct,
   listProducts,
   updateProduct,
 } from "../shared/repository";
 
-import type { Product } from "../types/database";
+import type { Product, StockLog } from "../types/database";
 
 export interface ProductFormValues {
   category: Product["category"];
@@ -64,6 +65,27 @@ export async function createProductWithImage(
   }
 }
 
+/**
+ * Stok opname: menetapkan stok fisik hasil hitung ulang.
+ * Selalu menghasilkan baris audit di stock_logs lewat RPC record_stock_adjustment.
+ */
+export async function saveStockAdjustment(
+  productId: string,
+  values: { new_stock: number; notes: string },
+): Promise<StockLog> {
+  try {
+    return await adjustProductStock({
+      product_id: productId,
+      new_stock: values.new_stock,
+      notes: values.notes,
+    });
+  } catch (error) {
+    throw new Error(
+      error instanceof Error ? error.message : "Gagal menyesuaikan stok produk.",
+    );
+  }
+}
+
 export async function updateProductWithImage(
   productId: string,
   values: ProductFormValues,
@@ -88,9 +110,9 @@ export async function updateProductWithImage(
       }
     }
 
+    // Stok tidak ikut dikirim: perubahan stok hanya lewat transaksi atau stok opname.
     return await updateProduct(productId, {
       category: values.category,
-      current_stock: values.current_stock,
       image_url: finalImageUrl,
       is_public: values.is_public,
       min_stock: values.min_stock,
